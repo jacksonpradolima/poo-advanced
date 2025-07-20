@@ -22,6 +22,15 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 - O conteúdo deve ser **autossuficiente**: não deve depender de explicações externas ou complementos do professor.
 - O conteúdo deve ser **coerente com o plano de ensino**, disponível no arquivo `plano_ensino.md`.
 - **Não há limite de palavras.** Continue gerando até a conclusão completa do conteúdo.
+- Para cada aula, todo o conteúdo detalhado deve ser distribuído nos arquivos e subpastas conforme o modelo de diretórios.
+- O arquivo principal README.md deve conter o sumário, objetivos, visão geral e referências, mas exemplos de código, exercícios e recursos  complementares devem estar em seus próprios arquivos nas subpastas correspondentes.
+- Exercícios práticos devem ser criados em arquivos separados dentro da pasta exercicios/, organizados por nível (nivel1/, nivel2/, nivel3/).
+- Exemplos de código devem ser salvos em arquivos próprios dentro de exemplos/ (básico, intermediário, avançado).
+- Diagramas e slides devem ser salvos em recursos/diagramas/ e recursos/slides/, respectivamente.
+- Gabaritos e soluções devem ser salvos em solucoes/ (quando aplicável).
+- O README.md de cada subpasta deve indexar os arquivos presentes e dar breve descrição de como usar/estudar cada conteúdo.
+- Evite centralizar conteúdos extensos no README principal. Use os arquivos específicos para detalhamento.
+
 
 ## Estrutura Obrigatória da Aula
 
@@ -103,6 +112,8 @@ docs/aulas/aula-XX-nome_da_aula/
 └── solucoes/                  # Gabaritos (pasta privada/opcional)
 ```
 
+- Nunca gere conteúdos extensos de exercícios, exemplos, diagramas ou gabaritos no README.md principal. Gere sempre em arquivos separados, indexados no README.md da subpasta correspondente.
+
 ## Template de Aula
 
 ````md
@@ -115,7 +126,10 @@ prerequisitos: '['aula-YY', 'conceito-previo']
 dificuldade: 'básico|intermediário|avançado'
 owner: 'Jackson Antonio do Prado Lima'
 date_created: '[AAAA-MM-DD]'
-
+tempo_estimado: '[hh:mm]'
+forma_entrega: '[exercício, apresentação, projeto, etc]'
+competencias: ['competencia1', 'competencia2']
+metodologia: '[Aula expositiva, prática, estudo de caso, etc]'
 ---
 
 
@@ -164,10 +178,9 @@ date_created: '[AAAA-MM-DD]'
 
 ---
 
-## Exemplo de Código
-```python
-# Exemplo em Python relacionado ao tópico da aula
-```
+
+## Exemplos de Código
+(Ver arquivos em exemplos/)
 
 ---
 
@@ -183,8 +196,12 @@ date_created: '[AAAA-MM-DD]'
 - Solução aplicada com código
 - Discussão sobre a escolha da solução
 
+(Ver arquivos em recursos/diagramas/)
+
 ---
 ## Exercícios Práticos
+
+(Ver arquivos em exercicios/)
 
 ### Exercício 1 (🔵 Básico)
 
@@ -202,6 +219,12 @@ date_created: '[AAAA-MM-DD]'
 * \[Conteúdo semelhante estruturado]
 
 ---
+
+## Atividade Interativa
+(Sugestão de discussão, debate ou projeto colaborativo)
+
+---
+
 
 ## Erros Comuns
 
@@ -233,6 +256,8 @@ date_created: '[AAAA-MM-DD]'
 
 ## Material Complementar
 [Recursos adicionais para aprofundamento]
+(Slides, vídeos, links, podcasts, etc.)
+
 
 ---
 
@@ -242,6 +267,11 @@ date_created: '[AAAA-MM-DD]'
 * Site: \[Nome do site e URL]
 * Artigo: Título, Autores, Revista, Ano.
 * Documentação Oficial: \[URL]
+
+---
+
+## Slides Gerados
+(Ver recursos/slides/)
 
 ````
 
