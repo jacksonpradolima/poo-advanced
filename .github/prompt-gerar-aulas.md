@@ -1,0 +1,1 @@
+Leia e siga o arquivo de instruções e o plano de ensino do repositório. Gere todas as aulas da disciplina, cada uma organizada em sua pasta e arquivos conforme o modelo definido. O conteúdo deve ser didático, completo, autossuficiente, distribuído nos arquivos adequados, pronto para uso sem necessidade de ajustes.
