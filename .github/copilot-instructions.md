@@ -24,12 +24,13 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 - **Não há limite de palavras.** Continue gerando até a conclusão completa do conteúdo.
 - Para cada aula, todo o conteúdo detalhado deve ser distribuído nos arquivos e subpastas conforme o modelo de diretórios.
 - O arquivo principal README.md deve conter o sumário, objetivos, visão geral e referências, mas exemplos de código, exercícios e recursos  complementares devem estar em seus próprios arquivos nas subpastas correspondentes.
-- O arquivo principal da aula (README.md) deve conter explicações narrativas, completas e autossuficientes para cada tópico do sumário, no mesmo nível de detalhamento dos arquivos do repositório de referência. Não apenas aponte para outros arquivos, mas escreva o conteúdo pronto para o professor usar diretamente em aula, incluindo definições, exemplos de código comentados, contexto histórico, analogias, armadilhas comuns, boas práticas, estudos de caso, perguntas frequentes e conexões com outras aulas.
-- Exercícios práticos devem ser criados em arquivos separados dentro da pasta exercicios/, organizados por nível (nivel1/, nivel2/, nivel3/). Com cenários realistas, dicas, desafios, objetivos pedagógicos explícitos. Todo exercício deve incluir um código base a ser utilizado como ponto de partida para o aluno, sempre dentro do enunciado ou em um arquivo de referência. 
-- Exemplos de código devem ser salvos em arquivos próprios dentro de exemplos/ (básico, intermediário, avançado). Utilizando código funcional, explicado, com contexto, alternativas e testes. 
+- O arquivo principal da aula (README.md) deve conter explicações narrativas, completas, detalhadas e autossuficientes para cada tópico do sumário. Não apenas aponte para outros arquivos, mas escreva o conteúdo pronto para o professor usar diretamente em aula, incluindo definições, exemplos de código comentados, contexto histórico, analogias, armadilhas comuns, boas práticas, estudos de caso, perguntas frequentes e conexões com outras aulas. Isso é conteúdo de aula, o aluno precisa de tudo! Mínimo de 12 mil palavras por tópico.
+- Exercícios práticos devem ser criados em arquivos separados dentro da pasta exercicios/, organizados por nível (nivel1/, nivel2/, nivel3/). Com cenários realistas, dicas, desafios, objetivos pedagógicos explícitos. Todo exercício deve incluir um código base a ser utilizado como ponto de partida para o aluno, sempre dentro do enunciado (o exercício deve ser auto contido).
+- Exemplos de código devem ser salvos em arquivos próprios dentro de exemplos/ (básico, intermediário, avançado). Utilizando código funcional, explicado, com contexto, alternativas e testes.
 - Diagramas e slides devem ser salvos em recursos/diagramas/ e recursos/slides/, respectivamente. Slides devem ter tópicos, exemplos, diagramas, perguntas para discussão.
 - Gabaritos e soluções devem ser salvos em solucoes/ (quando aplicável).
 - O README.md de cada subpasta deve indexar os arquivos presentes e dar breve descrição de como usar/estudar cada conteúdo.
+- O README é o centro do conteúdo explicativo, com narrativa didática, exemplos, estudos de caso e discussões, e não apenas um índice ou sumário. Os arquivos externos servem como apoio, mas o professor/leitor deve conseguir dar a aula apenas com o README, como no exemplo [https://github.com/jacksonpradolima/poo/blob/main/docs/aulas/05-projeto_orientado_objetos/1-design_orientado_oo.md].
 
 ## Detalhamento Obrigatório
 
@@ -186,7 +187,20 @@ metodologia: '[Aula expositiva, prática, estudo de caso, etc]'
 ---
 
 ## Conteúdo Explicativo
-[Desenvolver o conteúdo de forma detalhada seguindo a estrutura já definida.]
+
+Para cada tópico abaixo, desenvolva uma explicação narrativa extensa, incluindo:
+
+- Introdução histórica e contextualização do conceito
+- Explicação detalhada com analogias e comparações
+- Exemplos práticos em Python, amplamente comentados e discutidos pedagogicamente
+- Discussão sobre armadilhas, erros comuns e boas práticas
+- Estudo de caso aplicado, com problematização e solução comentada
+- Perguntas frequentes e respostas detalhadas
+- Conexões com outras aulas e aplicações reais
+- Material pronto para leitura e apresentação direta, sem depender de arquivos externos
+
+> O conteúdo deve ser autossuficiente, didático e extenso, como nos exemplos do repositório de referência.
+
 ---
 
 
@@ -248,7 +262,7 @@ Cada exemplo deve ser completo, funcional, amplamente comentado, abordar alterna
 
 
 ## Perguntas Frequentes
-[Dúvidas comuns antecipadas]
+[Dúvidas comuns antecipadas e explicação de como resolvê-las.]
 
 ---
 
