@@ -24,12 +24,12 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 - **Não há limite de palavras.** Continue gerando até a conclusão completa do conteúdo.
 - Para cada aula, todo o conteúdo detalhado deve ser distribuído nos arquivos e subpastas conforme o modelo de diretórios.
 - O arquivo principal README.md deve conter o sumário, objetivos, visão geral e referências, mas exemplos de código, exercícios e recursos  complementares devem estar em seus próprios arquivos nas subpastas correspondentes.
-- Exercícios práticos devem ser criados em arquivos separados dentro da pasta exercicios/, organizados por nível (nivel1/, nivel2/, nivel3/).
-- Exemplos de código devem ser salvos em arquivos próprios dentro de exemplos/ (básico, intermediário, avançado).
-- Diagramas e slides devem ser salvos em recursos/diagramas/ e recursos/slides/, respectivamente.
+- O arquivo principal da aula (README.md) deve conter explicações narrativas, completas e autossuficientes para cada tópico do sumário, no mesmo nível de detalhamento dos arquivos do repositório de referência. Não apenas aponte para outros arquivos, mas escreva o conteúdo pronto para o professor usar diretamente em aula, incluindo definições, exemplos de código comentados, contexto histórico, analogias, armadilhas comuns, boas práticas, estudos de caso, perguntas frequentes e conexões com outras aulas.
+- Exercícios práticos devem ser criados em arquivos separados dentro da pasta exercicios/, organizados por nível (nivel1/, nivel2/, nivel3/). Com cenários realistas, dicas, desafios, objetivos pedagógicos explícitos. Todo exercício deve incluir um código base a ser utilizado como ponto de partida para o aluno, sempre dentro do enunciado ou em um arquivo de referência. 
+- Exemplos de código devem ser salvos em arquivos próprios dentro de exemplos/ (básico, intermediário, avançado). Utilizando código funcional, explicado, com contexto, alternativas e testes. 
+- Diagramas e slides devem ser salvos em recursos/diagramas/ e recursos/slides/, respectivamente. Slides devem ter tópicos, exemplos, diagramas, perguntas para discussão.
 - Gabaritos e soluções devem ser salvos em solucoes/ (quando aplicável).
 - O README.md de cada subpasta deve indexar os arquivos presentes e dar breve descrição de como usar/estudar cada conteúdo.
-- Evite centralizar conteúdos extensos no README principal. Use os arquivos específicos para detalhamento.
 
 ## Detalhamento Obrigatório
 
@@ -45,6 +45,23 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 
 - **Exemplos de Código:**  
   Gere exemplos completos, funcionais e comentados, mostrando passo a passo o raciocínio de implementação, alternativas, refatorações, e incluindo testes unitários sempre que possível.
+
+Todo exemplo de código gerado deve ser:
+
+- **Comparativo e explicativo:**  
+  Sempre que possível, apresente o "antes" (código ingênuo, problemático ou sem boas práticas) e o "depois" (código refatorado, utilizando boas práticas ou padrões de design).
+- **Comentado pedagogicamente:**  
+  Adicione comentários explicando o que cada parte do código faz, os motivos das mudanças e os benefícios obtidos.
+- **Contextualizado:**  
+  Inclua uma breve explicação sobre o problema original, o objetivo da refatoração/aplicação do padrão e o que se espera que o aluno aprenda.
+- **Funcional e testável:**  
+  Os exemplos devem ser completos e, sempre que possível, incluir casos de uso, testes unitários ou simulações de execução.
+- **Motivacional:**  
+  Mostre como a aplicação de boas práticas ou padrões facilita manutenção, extensão, compreensão e teste do código.
+- **Organizado em arquivos separados:**  
+  Salve o exemplo de código "antes" e "depois" em arquivos distintos e indexe corretamente no README.md do diretório.
+
+> **Nunca gere exemplos sem explicar claramente o que está sendo demonstrado, o motivo da escolha e os benefícios da solução apresentada.**
 
 - **Slides:**  
   Para cada aula, produza slides completos, organizados em arquivos Markdown, com títulos, tópicos, resumos, exemplos, diagramas (em mermaid/plantuml ou imagens) e perguntas para discussão.  
