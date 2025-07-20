@@ -31,6 +31,24 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 - O README.md de cada subpasta deve indexar os arquivos presentes e dar breve descrição de como usar/estudar cada conteúdo.
 - Evite centralizar conteúdos extensos no README principal. Use os arquivos específicos para detalhamento.
 
+## Detalhamento Obrigatório
+
+- **Conteúdo Explicativo:**  
+  Para cada tópico do sumário, produza explicações narrativas, extensas e autossuficientes, mantendo o padrão de qualidade, detalhamento, estilo de escrita e organização encontrados nos arquivos do repositório [https://github.com/jacksonpradolima/poo]. Use exemplos de código, comentários pedagógicos, estudos de caso, diagramas e discussões conforme praticado nesse repositório.
+  Isso inclui:  
+  - Conceitos explicados em linguagem natural, com contexto histórico, aplicações reais e analogias.
+  - Exemplos de código extensos e totalmente comentados, explicando cada decisão de design.
+  - Discussão sobre armadilhas, erros comuns e boas práticas.
+  - Estudos de caso completos, analisando cenários reais ou simulados.
+  - Comparação entre abordagens e padrões, sempre que pertinente.
+  - Material pronto para leitura direta, sem necessidade de complementos pelo professor.
+
+- **Exemplos de Código:**  
+  Gere exemplos completos, funcionais e comentados, mostrando passo a passo o raciocínio de implementação, alternativas, refatorações, e incluindo testes unitários sempre que possível.
+
+- **Slides:**  
+  Para cada aula, produza slides completos, organizados em arquivos Markdown, com títulos, tópicos, resumos, exemplos, diagramas (em mermaid/plantuml ou imagens) e perguntas para discussão.  
+  Slides devem ser didáticos, visuais e prontos para apresentação sem complementos.
 
 ## Estrutura Obrigatória da Aula
 
@@ -43,13 +61,15 @@ A aula gerada deve conter:
 
 ### 2. Conteúdo Explicativo Completo
 
-* Conceitos aprofundados.
-* Contextualização histórica, se pertinente.
-* Analogias intuitivas e comparações com outras linguagens ou ferramentas.
-* Exemplos de código amplamente comentados (em Python, neste caso).
-* Armadilhas comuns e como evitá-las.
-* Boas práticas aplicáveis.
-* Estudos de caso aplicados e relevantes.
+Para cada tópico do sumário, produza uma explicação narrativa extensa e didática, incluindo:
+
+- Introdução ao conceito com contexto histórico e aplicações reais.
+- Explicação detalhada com analogias e comparações.
+- Exemplo prático em Python, amplamente comentado e discutido pedagogicamente.
+- Discussão sobre possíveis armadilhas e boas práticas.
+- Estudo de caso aplicado, com problematização e solução comentada.
+- Material pronto para leitura e apresentação direta.
+
 
 ### 3. Exercícios Práticos
 
@@ -140,47 +160,21 @@ metodologia: '[Aula expositiva, prática, estudo de caso, etc]'
 [Descrever claramente o objetivo pedagógico geral da aula.]
 
 ## Objetivos Específicos
-1. [Objetivo específico 1]
-2. [Objetivo específico 2]
-3. [Objetivo específico 3]
+[Descrever objetivos específicos que os alunos devem alcançar ao final da aula.]
 
 ---
 
 ## Sumário
-1. [Tópico 1]
-2. [Tópico 2]
-3. [Tópico 3]
-4. [Exemplos de Código]
-5. [Estudos de Caso]
-6. [Exercícios Práticos]
-7. [Referências]
-
+[Listar os tópicos principais que serão abordados na aula, seguindo a estrutura pedagógica.]
 ---
 
 ## Conteúdo Explicativo
-
-### 1. [Tópico 1: Nome]
-- **Conceito:** Explicação aprofundada
-- **Contextualização Histórica:** (se pertinente)
-- **Comparação com outras linguagens/ferramentas:** 
-- **Analogias:** 
-
-### 2. [Tópico 2: Nome]
-- Explicação detalhada
-- Exemplo prático
-- Boas práticas
-- Erros comuns e como evitá-los
-
-### 3. [Tópico 3: Nome]
-- Conceito avançado
-- Aplicação prática
-- Discussão crítica
-
+[Desenvolver o conteúdo de forma detalhada seguindo a estrutura já definida.]
 ---
 
 
 ## Exemplos de Código
-(Ver arquivos em exemplos/)
+Cada exemplo deve ser completo, funcional, amplamente comentado, abordar alternativas de implementação, incluir testes unitários sempre que possível, e trazer explicações sobre decisões de design.
 
 ---
 
@@ -196,12 +190,8 @@ metodologia: '[Aula expositiva, prática, estudo de caso, etc]'
 - Solução aplicada com código
 - Discussão sobre a escolha da solução
 
-(Ver arquivos em recursos/diagramas/)
-
 ---
 ## Exercícios Práticos
-
-(Ver arquivos em exercicios/)
 
 ### Exercício 1 (🔵 Básico)
 
@@ -255,8 +245,8 @@ metodologia: '[Aula expositiva, prática, estudo de caso, etc]'
 ---
 
 ## Material Complementar
-[Recursos adicionais para aprofundamento]
-(Slides, vídeos, links, podcasts, etc.)
+Produza slides completos em Markdown, com títulos, tópicos, exemplos, diagramas e perguntas para discussão.  
+Slides devem ser visuais, didáticos e prontos para apresentação.
 
 
 ---
@@ -619,6 +609,10 @@ def criar_conta_com_valor_inicial(valor: Optional[float] = 0.0) -> ContaBancaria
 - [ ] Linguagem inclusiva e acessível
 - [ ] Formatação consistente com padrões do projeto
 - [ ] Metadados completos e atualizados
+- [ ] Conteúdo explicativo narrativo, extenso e autossuficiente
+- [ ] Exemplos de código completos, funcionais e comentados
+- [ ] Slides preenchidos, visuais e prontos para apresentação
+- [ ] Diagramas preenchidos, quando aplicável
 
 ### 3. Versionamento de Conteúdo
 - **Major (X.0.0)**: Reestruturação significativa do conteúdo
