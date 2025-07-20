@@ -1,17 +1,13 @@
 ---
 mode: 'agent'
-description: 'Gerar planos de aula estruturados, objetivos, metodologias e conteúdos por sessão com base no plano de ensino da disciplina'
+description: 'Gerar aulas estruturadas, objetivos, metodologias e conteúdos por sessão com base no plano de ensino da disciplina'
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo', 'openSimpleBrowser', 'problems', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI]
 ---
-# Geração de Plano de Aula para a Disciplina
+# Geração de Aulas para a Disciplina
 
 ## Diretriz Primária
 
-Gerar um plano de aula abrangente, detalhado e pedagogicamente estruturado alinhado ao plano de ensino oficial da disciplina. O plano deve permitir que instrutores ou agentes educacionais gerem, adaptem e executem conteúdos instrucionais, exemplos de código, avaliações e atividades, conforme o plano oficial aprovado para a disciplina.
-
-O plano de ensino da disciplina encontra-se em `plano_ensino.md` no diretório principal.
-
-Sempre leia o histórico e arquivos presentes no repositório para garantir consistência antes de sugerir novos conteúdos ou códigos.
+Seu objetivo é **gerar aulas completas e detalhadas** para a disciplina de Programação Orientada a Objetos (POO) em Python, seguindo rigorosamente o plano de ensino oficial da disciplina. Cada aula seguir rigorosamente o plano de ensino da disciplina, que já contém os planos de aula (define os objetivos gerais e específicos, conteúdos programáticos, metodologias, métodos de avaliação e referências). O plano de ensino da disciplina encontra-se em `plano_ensino.md` no diretório principal. Sempre leia o histórico e arquivos presentes no repositório para garantir consistência antes de sugerir novos conteúdos ou códigos.
 
 ## Contexto de Execução
 
@@ -19,25 +15,46 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 
 ## Requisitos Centrais
 
-- Todos os planos de aula devem estar rigorosamente alinhados ao **plano oficial da disciplina** (`plano_ensino.md`).
 - Linguagem: **Python** (v3.12+), não utilizar Java ou C++.
-- Incluir objetivos estruturados e progressivos: **Objetivo Geral** e **Objetivos Específicos** por aula. Ambos disponíveis no plano de ensino.
-- O conteúdo deve detalhar tópicos, exemplos de código, exercícios e referências às ferramentas, bibliotecas e frameworks especificados no plano. O conteúdo programático está disponível no plano de ensino.
-- A metodologia deve definir explicitamente as etapas da aula, alocação de tempo, ferramentas e frameworks. A metodologia está disponível no plano de ensino.
-- Todos os entregáveis (exercícios, projetos, avaliações) devem estar alinhados com a abordagem baseada em projetos definida no plano.
+- Cada aula deve conter **no mínimo 100 mil palavras**, sem limite máximo.
+- O conteúdo deve ser **progressivo**, começando dos fundamentos até aplicações avançadas, quando pertinente.
+- O tom deve ser **acadêmico acessível**, detalhado e instrucional.
+- O conteúdo deve ser **autossuficiente**: não deve depender de explicações externas ou complementos do professor.
+- O conteúdo deve ser **coerente com o plano de ensino**, disponível no arquivo `plano_ensino.md`.
+- **Não há limite de palavras.** Continue gerando até a conclusão completa do conteúdo.
 
-## Estrutura Obrigatória do Plano de Aula
+## Estrutura Obrigatória da Aula
 
-Cada plano de aula deve conter:
+A aula gerada deve conter:
 
-- **Objetivo Geral da Aula**
-- **Objetivos Específicos**
-- **Conteúdos a Serem Abordados**
-- **Metodologia**: com etapas detalhadas, alocação de tempo, ferramentas e frameworks.
-- **Métodos de Avaliação**: formativa (ao longo da aula) e somativa (checkpoints).
-- **Referências e Materiais de Apoio**: incluindo URLs, documentação oficial e referências acadêmicas.
-- **Exemplo de Código em Python**, sempre que aplicável.
-- **Entregáveis Esperados dos Estudantes**.
+### 1. Sumário Completo
+
+* Estruturado em tópicos e subtópicos.
+* Deve refletir a sequência pedagógica do conteúdo.
+
+### 2. Conteúdo Explicativo Completo
+
+* Conceitos aprofundados.
+* Contextualização histórica, se pertinente.
+* Analogias intuitivas e comparações com outras linguagens ou ferramentas.
+* Exemplos de código amplamente comentados (em Python, neste caso).
+* Armadilhas comuns e como evitá-las.
+* Boas práticas aplicáveis.
+* Estudos de caso aplicados e relevantes.
+
+### 3. Exercícios Práticos
+
+* Enunciados claros e bem definidos.
+* Objetivos pedagógicos por exercício.
+* Dicas para resolução.
+* Sugestões de extensões ou desafios extras.
+
+### 4. Referências
+
+* Livros acadêmicos.
+* Sites confiáveis.
+* Artigos relevantes.
+* Documentação oficial atualizada.
 
 ## Objetivos Educacionais Gerais
 
@@ -86,7 +103,7 @@ docs/aulas/aula-XX-nome_da_aula/
 └── solucoes/                  # Gabaritos (pasta privada/opcional)
 ```
 
-## Template de Plano de Aula
+## Template de Aula
 
 ````md
 ---
@@ -101,6 +118,10 @@ date_created: '[AAAA-MM-DD]'
 
 ---
 
+
+# Aula XX - [Título da Aula]
+[Introdução breve sobre o tema da aula, sua importância e relevância no contexto da POO.]
+
 # Objetivo Geral
 [Descrever claramente o objetivo pedagógico geral da aula.]
 
@@ -109,30 +130,119 @@ date_created: '[AAAA-MM-DD]'
 2. [Objetivo específico 2]
 3. [Objetivo específico 3]
 
-## Conteúdo Programático
-- Tópico 1
-- Tópico 2
-- Tópico 3
+---
 
-## Metodologia
-- **Duração da Exposição:** [minutos]
-- **Atividade Prática:** [tarefas de programação, projetos, integrações]
-- **Tecnologias e Ferramentas:** [listar versões específicas, ex: FastAPI 0.110+, PostgreSQL 15+, Polars]
-- **Avaliação:** [descrição das avaliações: quizzes, desafios de codificação, marcos do projeto]
+## Sumário
+1. [Tópico 1]
+2. [Tópico 2]
+3. [Tópico 3]
+4. [Exemplos de Código]
+5. [Estudos de Caso]
+6. [Exercícios Práticos]
+7. [Referências]
+
+---
+
+## Conteúdo Explicativo
+
+### 1. [Tópico 1: Nome]
+- **Conceito:** Explicação aprofundada
+- **Contextualização Histórica:** (se pertinente)
+- **Comparação com outras linguagens/ferramentas:** 
+- **Analogias:** 
+
+### 2. [Tópico 2: Nome]
+- Explicação detalhada
+- Exemplo prático
+- Boas práticas
+- Erros comuns e como evitá-los
+
+### 3. [Tópico 3: Nome]
+- Conceito avançado
+- Aplicação prática
+- Discussão crítica
+
+---
 
 ## Exemplo de Código
 ```python
 # Exemplo em Python relacionado ao tópico da aula
 ```
 
+---
+
+## Alternativa ou variação:
+[Outra abordagem para o mesmo conceito, quando pertinente.]
+
+---
+
+## Estudos de Caso
+
+- Descrição do caso
+- Problema proposto
+- Solução aplicada com código
+- Discussão sobre a escolha da solução
+
+---
+## Exercícios Práticos
+
+### Exercício 1 (🔵 Básico)
+
+* **Objetivo:** \[Descrição]
+* **Enunciado:**
+* **Dicas:**
+* **Objetivos pedagógicos:**
+
+### Exercício 2 (🟡 Intermediário)
+
+* \[Conteúdo semelhante estruturado]
+
+### Exercício 3 (🔴 Avançado)
+
+* \[Conteúdo semelhante estruturado]
+
+---
+
+## Erros Comuns
+
+* \[Erro frequente 1 e explicação]
+* \[Erro frequente 2 e explicação]
+
+---
+
+## Boas Práticas
+
+* Lista de boas práticas associadas ao tema.
+
+---
+
+
+## Perguntas Frequentes
+[Dúvidas comuns antecipadas]
+
+---
+
 ## Conexões com Outras Aulas
 [Como esta aula se relaciona com o curso]
+
+* **Aula anterior:** \[link]
+* **Próxima aula:** \[link]
+* **Aulas relacionadas:** \[lista]
+
+---
 
 ## Material Complementar
 [Recursos adicionais para aprofundamento]
 
-## Perguntas Frequentes
-[Dúvidas comuns antecipadas]
+---
+
+## Referências
+
+* Livro: Título, Autor, Editora, Ano.
+* Site: \[Nome do site e URL]
+* Artigo: Título, Autores, Revista, Ano.
+* Documentação Oficial: \[URL]
+
 ````
 
 ## Metadados e Organização
