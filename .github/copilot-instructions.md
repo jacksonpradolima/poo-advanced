@@ -16,6 +16,53 @@ tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo',
 
 Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-humano, garantindo geração automatizada e repetível de aulas respeitando a estrutura pedagógica, profundidade e sequência do curso.
 
+## Processo de Criação de Conteúdo
+
+### Workflow Padrão
+1. **Planejamento**: Definir objetivos e escopo
+2. **Pesquisa**: Revisar materiais existentes e referências
+3. **Estruturação**: Organizar conteúdo segundo template
+4. **Desenvolvimento**: Criar textos, códigos e exercícios
+5. **Revisão**: Validar qualidade e consistência
+6. **Teste**: Executar códigos e verificar exercícios
+7. **Publicação**: Disponibilizar para estudantes
+
+
+### Divisão de Tarefas (Workflow Detalhado)
+
+| Etapa                          | Ação                                                             | Resultado Esperado                   |
+| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------ |
+| **1. Estrutura**               | Criar diretórios/arquivos conforme layout padrão.                | Árvore de pastas existente.          |
+| **2. Metadados**               | Inserir YAML front matter nos arquivos principais.               | Metadados completos e válidos.       |
+| **3. Seções Base**             | Rascunhar todas as seções obrigatórias (1 a 5) com títulos.      | Esqueleto do capítulo.               |
+| **4. Conteúdo Teórico**        | Preencher **Seção 2 (Fundamentos)** de forma exaustiva.          | Base conceitual sólida.              |
+| **5. Código & Estudo de Caso** | Desenvolver **Seção 3** (aplicação + exemplos “Antes × Depois”). | Código executável e comentado.       |
+| **6. Exercícios**              | Criar enunciados e gabaritos em `exercicios/` e `solucoes/`.     | Atividades por nível (🔵🟡🔴).       |
+| **7. Tópicos Avançados**       | Completar **Seção 4**.                                           | Discussão de nuances e anti‑padrões. |
+| **8. Síntese**                 | Finalizar **Seção 5** (resumo, mapa mental, referências).        | Fechamento do capítulo.              |
+| **9. Revisão Iterativa**       | ✔ Verificar checklist → corrigir → voltar à etapa pendente.      | Documento pronto para publicação.    |
+
+> **Dica:** depois de cada etapa, execute uma **mini‑review** de 5 minutos para garantir aderência aos requisitos antes de seguir.
+
+### Checklist de Qualidade
+- [ ] Estrutura de pastas corresponde ao layout padrão.  
+- [ ] Objetivos de aprendizagem claramente definidos
+- [ ] Conceitos explicados com clareza e progressão lógica
+- [ ] Exemplos práticos funcionais e bem comentados
+- [ ] Exercícios variados em dificuldade e abordagem
+- [ ] Linguagem inclusiva e acessível
+- [ ] Formatação consistente com padrões do projeto
+- [ ] Metadados completos e atualizados
+- [ ] YAML front matter presente e preenchido.  
+- [ ] Conteúdo explicativo narrativo, extenso e autossuficiente
+- [ ] Profundidade teórica adequa‑se aos objetivos do plano de ensino.  
+- [ ] Exemplos de código completos, funcionais e comentados
+- [ ] Diagramas preenchidos, quando aplicável
+- [ ] Revisão iterativa concluída sem pendências.  
+
+> Só avance para o commit quando todas as caixas acima puderem ser marcadas mentalmente como concluídas.
+---
+
 ## Variáveis de Entrada
 
 Os objetivos e conteúdo programático de cada aula/capítulo - aka plano de aula - estão disponíveis no arquivo `plano_ensino.md` que encontra-se no diretório principal do projeto. plano de ensino oficial da disciplina. Cada aula deve seguir rigorosamente o plano de ensino da disciplina. Sempre leia o histórico e arquivos presentes no repositório para garantir consistência antes de sugerir novos conteúdos ou códigos.
@@ -41,6 +88,13 @@ docs/aulas/aula-XX-nome_da_aula/
 ```
 
 ## Requisitos Centrais
+
+
+> **Prioridades Absolutas**
+>
+> 1. **Profundidade Teórica** e **Rigor Técnico**
+> 2. **Progressão Pedagógica** (teoria → modelo → código → validação)
+> 3. **Exemplos Práticos Funcionais** e **Exercícios Realistas**
 
 ### Público-Alvo
 - **Primário**: Estudantes de graduação em Ciência da Computação, Sistemas de Informação e áreas afins
@@ -430,30 +484,6 @@ def criar_conta_com_valor_inicial(valor: Optional[float] = 0.0) -> ContaBancaria
     return ContaBancaria(saldo_inicial=valor)
 
 ```
-
-## Processo de Criação de Conteúdo
-
-### 1. Workflow Padrão
-1. **Planejamento**: Definir objetivos e escopo
-2. **Pesquisa**: Revisar materiais existentes e referências
-3. **Estruturação**: Organizar conteúdo segundo template
-4. **Desenvolvimento**: Criar textos, códigos e exercícios
-5. **Revisão**: Validar qualidade e consistência
-6. **Teste**: Executar códigos e verificar exercícios
-7. **Publicação**: Disponibilizar para estudantes
-
-### 2. Checklist de Qualidade
-- [ ] Objetivos de aprendizagem claramente definidos
-- [ ] Conceitos explicados com clareza e progressão lógica
-- [ ] Exemplos práticos funcionais e bem comentados
-- [ ] Exercícios variados em dificuldade e abordagem
-- [ ] Linguagem inclusiva e acessível
-- [ ] Formatação consistente com padrões do projeto
-- [ ] Metadados completos e atualizados
-- [ ] Conteúdo explicativo narrativo, extenso e autossuficiente
-- [ ] Exemplos de código completos, funcionais e comentados
-- [ ] Diagramas preenchidos, quando aplicável
-
 
 ## Boas Práticas Específicas
 
