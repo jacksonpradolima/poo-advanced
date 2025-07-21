@@ -1,7 +1,6 @@
 ---
 mode: 'agent'
-description: >
-  Gerar aulas estruturadas no formato de capítulos de livro, com objetivos, metodologias e conteúdos altamente detalhados, seguindo o fluxo pedagógico teoria → modelo → código → validação e, quando indicado, suprimindo as partes práticas para sessões exclusivamente teóricas alinhadas ao plano de ensino da disciplina.
+description: 'Gerar aulas estruturadas no formato de capítulos de livro, com objetivos, metodologias e conteúdos altamente detalhados, seguindo o fluxo pedagógico teoria → modelo → código → validação e, quando indicado, suprimindo as partes práticas para sessões exclusivamente teóricas alinhadas ao plano de ensino da disciplina.'
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo', 'openSimpleBrowser', 'problems', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI]
 ---
 # Geração de Aulas para a Disciplina
