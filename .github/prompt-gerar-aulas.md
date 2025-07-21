@@ -1,1 +1,1 @@
-Leia e siga o arquivo de instruções e o plano de ensino do repositório. Gere todas as aulas da disciplina, cada uma organizada em sua pasta e arquivos conforme o modelo definido. O conteúdo deve ser didático, completo, autossuficiente, distribuído nos arquivos adequados, pronto para uso sem necessidade de ajustes.
+Leia TODO o arquivo de instruções e siga-os estritamente. Gere a aula (capítulo de livro) informada. Não sumarize ou encurte o conteúdo. Se você ficar sem tokens, então por favor, me espere dizer 'Go' para continuar gerando o conteúdo.
