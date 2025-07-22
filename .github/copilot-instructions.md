@@ -258,9 +258,14 @@ Exemplo de items e subitems do Conteúdo Programático:
 
 * **3.1. Estudo de Caso Guiado:** Proponha e desenvolva um estudo de caso simples e completo, do início ao fim. Divida a seção em passos numerados e claros (ex: "Passo 1: Carregando e Pré-processando os Dados", "Passo 2: Construindo a Arquitetura do Modelo", etc.).
 * **3.2. Exemplos de Código Comentado:** Forneça trechos de código que implementam os conceitos teóricos da Seção 2. Os comentários no código devem ser extremamente didáticos, explicando o "porquê" de cada bloco lógico, não apenas o "o quê".
-* **3.3. Ferramentas, Bibliotecas e Ecossistema:** Descreva o propósito e a função de cada um (Ex: "TensorFlow, Keras, PyTorch, OpenCV, CUDA."). Explique por que um profissional escolheria uma ferramenta em detrimento de outra em determinados cenários. Cite as versões exatas das ferramentas (ex: FastAPI 0.110+).
-**Instrução de Profundidade:** Esta seção é o coração prático do capítulo e deve ter um peso semelhante à seção de fundamentos. O foco total deve ser em exemplos "mão na massa". Para o estudo de caso, seja extremamente detalhado no passo a passo, como se estivesse guiando um iniciante pela mão. Os exemplos de código devem ser abundantes e os comentários, mais importantes que o próprio código, explicando a lógica e as decisões de design.
-
+* **3.3. Ferramentas, Bibliotecas e Ecossistema (Contextual):**
+  + **Instrução de Relevância:** Liste **exclusivamente** as ferramentas, bibliotecas e pacotes que foram **efetivamente utilizados ou importados** no Estudo de Caso (Seção 3.1) e nos Exemplos de Código (Seção 3.2) desta aula. A lista deve ser **contextual e minimalista**, focada apenas no estritamente necessário para entender e replicar o conteúdo prático desta aula específica.
+  + **Regra de Ouro:** Não crie uma lista genérica de ferramentas de desenvolvimento Python. A relevância para a aula atual é o critério mais importante.
+  + **Cenários de Execução:**
+    - **Se a aula usou uma biblioteca externa (ex: SQLAlchemy):** Descreva-a, cite a versão exata (SQLAlchemy 1.4.52+), explique por que ela foi escolhida para este problema específico e qual sua função no código apresentado.
+    - **Se a aula usou apenas ferramentas de teste (ex: pytest):** Mencione apenas o pytest, explicando seu papel na validação do conceito ensinado.
+    - **Se a aula usou apenas recursos nativos do Python (Python puro):** Esta seção deve declarar explicitamente: "Para a demonstração deste conceito, utilizamos apenas recursos nativos do Python 3.12+. Nenhuma biblioteca externa foi necessária, reforçando que o princípio ensinado é fundamental à estruturação do código e não depende de ferramentas de terceiros."
+  + **Instrução de Profundidade:** Esta seção é o coração prático do capítulo e deve ter um peso semelhante à seção de fundamentos. O foco total deve ser em exemplos "mão na massa". Para o estudo de caso, seja extremamente detalhado no passo a passo, como se estivesse guiando um iniciante pela mão. Os exemplos de código devem ser abundantes e os comentários, mais importantes que o próprio código, explicando a lógica e as decisões de design.
 
 ### **Seção 4: Tópicos Avançados e Nuances**
 
