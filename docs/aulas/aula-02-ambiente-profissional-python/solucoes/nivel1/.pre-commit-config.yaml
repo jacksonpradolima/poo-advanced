@@ -1,0 +1,291 @@
+# Configuração do Pre-commit Hooks
+# ================================
+# 
+# Este arquivo demonstra como configurar hooks automáticos que executam
+# verificações de qualidade antes de cada commit, garantindo que apenas
+# código de alta qualidade seja enviado para o repositório.
+#
+# Instalação: pre-commit install
+# Execução manual: pre-commit run --all-files
+# Atualização: pre-commit autoupdate
+
+repos:
+  # ================================
+  # HOOKS BÁSICOS DE QUALIDADE
+  # ================================
+  
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # Verifica sintaxe de arquivos YAML
+      - id: check-yaml
+        name: 🔍 Verificar sintaxe YAML
+        
+      # Verifica sintaxe de arquivos TOML
+      - id: check-toml
+        name: 🔍 Verificar sintaxe TOML
+        
+      # Verifica sintaxe de arquivos JSON
+      - id: check-json
+        name: 🔍 Verificar sintaxe JSON
+        
+      # Remove espaços em branco no final das linhas
+      - id: trailing-whitespace
+        name: ✂️  Remover espaços em branco
+        args: [--markdown-linebreak-ext=md]
+        
+      # Garante que arquivos terminam com nova linha
+      - id: end-of-file-fixer
+        name: 📝 Corrigir final de arquivo
+        
+      # Verifica se há conflitos de merge não resolvidos
+      - id: check-merge-conflict
+        name: 🔍 Verificar conflitos de merge
+        
+      # Verifica se arquivos Python são válidos sintaticamente
+      - id: check-ast
+        name: 🐍 Verificar sintaxe Python
+        
+      # Verifica se há imports duplicados ou não utilizados
+      - id: check-added-large-files
+        name: 📦 Verificar arquivos grandes
+        args: ['--maxkb=500']  # Limite de 500KB
+        
+      # Verifica se há credenciais privadas commitadas
+      - id: detect-private-key
+        name: 🔐 Detectar chaves privadas
+        
+      # Verifica se há debugging statements
+      - id: debug-statements
+        name: 🐛 Detectar statements de debug
+
+  # ================================
+  # RUFF - LINTING E FORMATAÇÃO
+  # ================================
+  
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.284
+    hooks:
+      # Linting com Ruff (substitui flake8, isort, etc.)
+      - id: ruff
+        name: 🔍 Ruff Linter
+        args: [--fix, --exit-non-zero-on-fix]
+        types: [python]
+        
+      # Formatação de código com Ruff
+      - id: ruff-format
+        name: 🎨 Ruff Formatter
+        types: [python]
+
+  # ================================
+  # MYPY - VERIFICAÇÃO DE TIPOS
+  # ================================
+  
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        name: 🔍 MyPy - Verificação de tipos
+        additional_dependencies: [types-all]
+        args: [--ignore-missing-imports, --strict]
+        exclude: ^(docs/|tests/fixtures/)
+
+  # ================================
+  # BANDIT - VERIFICAÇÃO DE SEGURANÇA
+  # ================================
+  
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        name: 🔐 Bandit - Verificação de segurança
+        args: [-r, --format, custom, --skip, B101,B601]
+        exclude: ^tests/
+
+  # ================================
+  # SAFETY - VERIFICAÇÃO DE DEPENDÊNCIAS
+  # ================================
+  
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        name: 🛡️  Safety - Verificar dependências vulneráveis
+
+  # ================================
+  # COMMITIZEN - PADRONIZAÇÃO DE COMMITS
+  # ================================
+  
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.6.0
+    hooks:
+      - id: commitizen
+        name: 📝 Commitizen - Verificar formato de commit
+        stages: [commit-msg]
+
+  # ================================
+  # PRETTIER - FORMATAÇÃO DE ARQUIVOS NÃO-PYTHON
+  # ================================
+  
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.1
+    hooks:
+      - id: prettier
+        name: 🎨 Prettier - Formatar Markdown/JSON/YAML
+        types_or: [markdown, json, yaml]
+        exclude: ^(\.vscode/|\.idea/)
+
+  # ================================
+  # HOOKS CUSTOMIZADOS ESPECÍFICOS DO PROJETO
+  # ================================
+  
+  - repo: local
+    hooks:
+      # Verificar se todos os módulos têm __init__.py
+      - id: check-init-files
+        name: 📦 Verificar arquivos __init__.py
+        entry: python -c "
+          import os
+          import sys
+          dirs_with_py = set()
+          for root, dirs, files in os.walk('.'):
+              if any(f.endswith('.py') for f in files):
+                  dirs_with_py.add(root)
+          
+          missing_init = []
+          for d in dirs_with_py:
+              if d != '.' and not os.path.exists(os.path.join(d, '__init__.py')):
+                  missing_init.append(d)
+          
+          if missing_init:
+              print('Diretórios Python sem __init__.py:')
+              for d in missing_init:
+                  print(f'  - {d}')
+              sys.exit(1)
+          "
+        language: system
+        pass_filenames: false
+        files: \.py$
+        
+      # Verificar se documentação está atualizada
+      - id: check-docstrings
+        name: 📚 Verificar docstrings
+        entry: python -c "
+          import ast
+          import sys
+          
+          def check_docstring(filename):
+              with open(filename, 'r', encoding='utf-8') as f:
+                  try:
+                      tree = ast.parse(f.read())
+                  except SyntaxError:
+                      return []
+              
+              missing = []
+              for node in ast.walk(tree):
+                  if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                      if (not ast.get_docstring(node) and 
+                          not node.name.startswith('_') and
+                          not (isinstance(node, ast.FunctionDef) and 
+                               node.name in ['setUp', 'tearDown'])):
+                          missing.append(f'{filename}:{node.lineno} - {node.name}')
+              return missing
+          
+          all_missing = []
+          for filename in sys.argv[1:]:
+              if filename.endswith('.py'):
+                  all_missing.extend(check_docstring(filename))
+          
+          if all_missing:
+              print('Funções/classes sem docstring:')
+              for item in all_missing:
+                  print(f'  - {item}')
+              sys.exit(1)
+          "
+        language: system
+        files: \.py$
+        exclude: ^(tests?/|.*test.*\.py$)
+        
+      # Verificar se há TODOs no código
+      - id: check-todos
+        name: 📝 Verificar TODOs pendentes
+        entry: python -c "
+          import sys
+          import re
+          
+          todo_pattern = re.compile(r'(TODO|FIXME|XXX|HACK)(?!.*# OK)', re.IGNORECASE)
+          found_todos = []
+          
+          for filename in sys.argv[1:]:
+              try:
+                  with open(filename, 'r', encoding='utf-8') as f:
+                      for line_num, line in enumerate(f, 1):
+                          if todo_pattern.search(line):
+                              found_todos.append(f'{filename}:{line_num} - {line.strip()}')
+              except UnicodeDecodeError:
+                  continue
+          
+          if found_todos:
+              print('TODOs encontrados (remova ou adicione # OK se intencional):')
+              for todo in found_todos:
+                  print(f'  - {todo}')
+              print()
+              print('Dica: Para manter um TODO, adicione # OK no final da linha')
+              sys.exit(1)
+          "
+        language: system
+        files: \.(py|md|txt|yaml|yml|toml)$
+        
+      # Executar testes rápidos
+      - id: run-tests
+        name: 🧪 Executar testes rápidos
+        entry: python -m pytest -x --lf -q
+        language: system
+        pass_filenames: false
+        files: \.py$
+        stages: [pre-push]  # Só executa no pre-push, não em todo commit
+
+# ================================
+# CONFIGURAÇÕES GLOBAIS
+# ================================
+
+# Configurações do pre-commit
+default_stages: [commit, merge-commit]
+default_language_version:
+  python: python3.12
+
+# Exclude patterns - arquivos/diretórios ignorados
+exclude: |
+  (?x)^(
+      \.vscode/|
+      \.idea/|
+      \.git/|
+      __pycache__/|
+      \.pytest_cache/|
+      \.mypy_cache/|
+      htmlcov/|
+      \.coverage|
+      dist/|
+      build/|
+      .*\.egg-info/|
+      venv/|
+      \.venv/|
+      env/|
+      \.env
+  )$
+
+# Configuração para CI - hooks mais rigorosos
+ci:
+  autofix_commit_msg: |
+    🤖 [pre-commit] auto-fixes aplicados
+    
+    Hooks executados:
+    - Formatação de código
+    - Correção de imports
+    - Remoção de espaços em branco
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '🔄 [pre-commit] Atualização automática de hooks'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
