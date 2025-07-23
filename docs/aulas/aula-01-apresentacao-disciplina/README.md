@@ -114,7 +114,7 @@ graph TD
     A[Analise a Classe] --> B{Consegue descrever sem usar 'E' ou 'OU'?}
     B -->|Não| C[❌ Viola SRP]
     B -->|Sim| D{Quantos atores diferentes podem pedir mudanças?}
-    D -->|> 1| C
+    D -->|\> 1| C
     D -->|1| E[✅ Satisfaz SRP]
 ```
 
@@ -159,7 +159,7 @@ CLASSE Context:
 ##### **Interface Segregation Principle (ISP)**
 **Teoria Detalhada:** Nenhum cliente deve ser forçado a depender de métodos que não utiliza. Interfaces grandes devem ser segmentadas em interfaces menores e mais específicas, aplicando o princípio da **responsabilidade única** ao nível de interfaces.
 
-**Fórmula de Segregação:** Para uma interface $I$ com métodos $M = \{m_1, m_2, ..., m_n\}$ e clientes $C = \{c_1, c_2, ..., c_k\}$, ISP é violado quando $\exists c_i \in C: |M_{usado\_por\_c_i}| < |M|$.
+**Fórmula de Segregação:** Para uma interface $I$ com métodos $M = \{m_1, m_2, ..., m_n\}$ e clientes $C = \{c_1, c_2, ..., c_k\}$, ISP é violado quando $\exists\, c_i \in C:\; \lvert M_{\text{usado por } c_i}\rvert < \lvert M\rvert$.
 
 ##### **Dependency Inversion Principle (DIP)**
 **Teoria Detalhada:** Módulos de alto nível não devem depender de módulos de baixo nível. Ambos devem depender de **abstrações**. Abstrações não devem depender de detalhes; detalhes devem depender de abstrações.
@@ -2008,9 +2008,7 @@ class GerenciadorBiblioteca:
         """Método que pode ser custoso - profile automático"""
         # ... implementação complexa
         pass
-```
 
----
 class ServicoGestaoLivros:
     def __init__(self, repo: RepositorioLivrosPort):
         self._repo = repo
