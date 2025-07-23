@@ -10,7 +10,8 @@ tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo',
 
 ## Diretriz Primária
 
-**Seu Objetivo:** Gerar capítulos de livro (aulas) completos, robusto e didático sobre os tópicos fornecidos. Cada capítulo (aula) deve ser adequado para o público-alvo especificado e seguir rigorosamente a estrutura detalhada abaixo. O resultado final deve ser um texto pronto para publicação em um livro técnico de alta qualidade.
+**Seu Objetivo:** Gerar capítulos de livro (aulas) completos, robusto e didático que cubra **INTEGRALMENTE** todos os tópicos fornecidos na variável `[CONTEÚDO_PROGRAMÁTICO_DA_AULA]`. Cada capítulo (aula) deve ser adequado para o público-alvo especificado e seguir rigorosamente a estrutura detalhada abaixo. O resultado final deve ser um texto pronto para publicação em um livro técnico de alta qualidade. A tarefa só é considerada concluída quando todos os itens do conteúdo programático forem desenvolvidos conforme instruções neste aquivo.
+
 
 ## Contexto de Execução
 
@@ -19,9 +20,10 @@ Este guia direciona comunicações AI-to-AI e o planejamento instrucional AI-hum
 ## Variáveis de Entrada
 
 O usuário deve fornecer os seguintes dados relativo ao plano de aula:
-- **Título da Aula**: O tópico específico a ser abordado na aula.
-- **Objetivos de Aprendizagem**:  o objetivo geral e os objetivos específicos que a aula deve alcançar.
-- **Conteúdo Programático**: Lista de tópicos e sub-tópicos a serem abordados na aula.
+- `[TITULO_DA_AULA]`: O título da aula, que deve ser claro e descritivo, refletindo o conteúdo a ser abordado.
+- `[OBJETIVO_GERAL_DA_AULA]`: O objetivo geral da aula, que deve ser claro e mensurável.
+- `[OBJETIVOS_ESPECIFICOS_DA_AULA]`: Uma lista de objetivos específicos que a aula deve alcançar, cada um com uma descrição clara e mensurável.
+- `[CONTEÚDO_PROGRAMÁTICO_DA_AULA]`: Uma lista estruturada de tópicos e subtópicos que definem o escopo da aula a ser gerada. Este conteúdo varia a cada execução.
 
 Cada aula (capítulo do livro) deve seguir rigorosamente o plano de aula. Sempre leia o histórico e arquivos presentes no repositório para garantir consistência antes de sugerir novos conteúdos ou códigos.
 
@@ -42,6 +44,9 @@ docs/aulas/aula-XX-nome_da_aula/
 │   ├── nivel2/                # Exercícios intermediários
 │   └── nivel3/                # Exercícios avançados
 └── solucoes/                  # Gabaritos (pasta privada/opcional)
+│   ├── nivel1/                # Soluções dos Exercícios básicos
+│   ├── nivel2/                # Soluções dos Exercícios intermediários
+│   └── nivel3/                # Soluções dos Exercícios avançados
 ```
 
 ## Processo de Criação de Conteúdo
@@ -218,7 +223,7 @@ Execute cada uma das seguintes instruções para construir o capítulo/aula.
 
 ### **Título da Aula**
 
-O título da aula é fornecido pelo usuário.
+O título da aula é fornecido pelo usuário (variável `[TITULO_DA_AULA]`). Não deve iniciar com "Aula X", apenas o tópico central. Deve ser claro, descritivo e refletir o conteúdo a ser abordado.
 
 ### **Sumário Completo**
 
@@ -232,27 +237,35 @@ O título da aula é fornecido pelo usuário.
 
 ### **Seção 2: Fundamentos Teóricos**
 
-Para cada item do Conteúdo Programático do plano de aula fornecido, faça:
+Antes de escrever, sua primeira tarefa é **analisar a estrutura** da variável `[CONTEÚDO_PROGRAMÁTICO_DA_AULA]`. Identifique os **principais blocos lógicos ou tópicos de alto nível** contidos nela, mas não escreva nada ainda.
+*(Exemplo de análise mental: Se o conteúdo for "Princípios SOLID; Padrões de Design", você identificará dois blocos principais. Se for "Introdução ao PostgreSQL; SQLAlchemy", você também identificará dois blocos).*
 
-* **2.1. Terminologia Essencial e Definições Formais:** Forneça uma definição formal e precisa. Imediatamente após a definição, adicione uma analogia simples e intuitiva. Crie uma **"Caixa de Destaque: Analogia para Entender"** para o conceito mais complexo da lista.
-* **2.2. Os Pilares do Tópico:** Decomponha o tópico em pilares conceituais mais importantes, considere os subitems contidos. Para cada pilar:
-    * Dê um subtítulo claro.
+Com base na análise, você irá construir a "Seção 2" de forma iterativa, processando **cada bloco principal identificado, um após o outro, em sequência**. Não adicione bloco ao título, utilize o tema identificado. Para **cada item e subitem** dentro de **cada bloco**, aplique rigorosamente o seguinte conjunto de regras de geração:
+
+* **2.1. Terminologia Essencial e Definições Formais:** Forneça uma definição formal e precisa. Imediatamente após a definição, adicione uma analogia simples e intuitiva. Crie uma Caixa de Destaque: **Analogia para Entender** para o conceito mais complexo.
+* **2.2. Estrutura Conceitual:** Decomponha o tópico (tema) em estruturas conceituais mais importantes. Para cada pilar:
+    * Dê um título claro.
     * Explique a teoria detalhadamente.
     * Use pseudocódigo ou um fluxograma descritivo para ilustrar o processo.
     * Crie um diagrama simples (usando mermaid, descrito em texto ou usando ASCII art) para visualização.
+    * Para conceitos de POO ou arquitetura, inclua diagramas de classe UML.
 * **2.3. Modelagem Matemática:** Apresente a matemática essencial por trás do pilar mais importante. Formate todas as equações usando LaTeX. Para cada equação, explique o que cada variável e símbolo representa no contexto do problema.
+* **2.3. Análise Quantitativa ou de Consequências:**
+    * Se o tópico for teórico ou algorítmico, apresente a **Modelagem Matemática** essencial por trás do pilar mais importante. Formate todas as equações usando LaTeX. Para cada equação, explique o que cada variável e símbolo representa no contexto do problema.
+    Caso contrário, **substitua a matemática** por uma **"Análise de Consequências e Trade-offs"**, detalhando o impactos, prós e contras (vantages, desvantagens, pontos fortes e fracos, quando e porque), etc.
 * **2.4. Análise Crítica:** Discuta as limitações, desafios e armadilhas comuns associadas ao tópico. Crie uma seção de perguntas frequentes (FAQ) abordando dúvidas comuns sobre o tópico. Crie tabelas comparativas entre abordagens, padrões ou ferramentas relevantes, destacando vantagens e desvantagens.
-**Instrução de Profundidade:** Esta é a seção mais importante e densa do capítulo. Sua prioridade máxima aqui é a profundidade e o rigor técnico. Dedique atenção especial a cada item e subitem do conteúdo programático, explicando não apenas "o que é", mas "por que funciona assim" e "quais suas implicações". Não hesite em ser detalhado e exaustivo. A qualidade da base teórica de todo o capítulo depende desta seção.
+**Instrução de Profundidade:** Esta é a seção mais importante e densa do capítulo. Sua prioridade máxima aqui é a profundidade e o rigor técnico. Dedique atenção especial a para **TODOS** os tópicos fornecidos do conteúdo programático, explicando não apenas "o que é", mas "por que funciona assim" e "quais suas implicações". Não hesite em ser detalhado e exaustivo. A qualidade da base teórica de todo o capítulo depende desta seção.
 
-Exemplo de aula: Aula 8 a 10 - Integração com Banco de Dados: PostgreSQL e DuckDB
-Exemplo de items e subitems do Conteúdo Programático:
-* Introdução ao PostgreSQL:
-  + Conceitos básicos e diferenciais do PostgreSQL.
-  + Comandos essenciais de SQL: CREATE, SELECT, INSERT, UPDATE, DELETE.
-* SQLAlchemy:
-  + Criação de modelos ORM.
-  + Mapeamento objeto-relacional.
-  + Sessões e transações.
+Antes de finalizar, execute esta verificação interna de completude:
+
+- [ ] Revise a lista de **blocos principais** que você identificou.
+- [ ] Confirme que o conteúdo gerado na "Seção 2" contém desenvolvimento detalhado e explícito para **CADA UM DESSES BLOCOS**. Não adicione bloco ao título, utilize o tema identificado.
+- [ ] Verifique se nenhum tópico de alto nível do `[CONTEÚDO_PROGRAMÁTICO_DA_AULA]` foi omitido.
+- [ ] Nenhum parágrafo inicia com expressões meta ("Neste tópico", "Desenvolvemos", "Agora veremos").
+- [ ] Nenhum título contém palavras genéricas como "Pilares", "Introdução", "Conclusão" – a menos que constem no conteúdo programático.
+- [ ] Cada bloco identificado foi totalmente coberto e numerado corretamente.
+
+**A tarefa só pode ser considerada bem-sucedida se o conteúdo gerado for uma representação completa e integral da análise estrutural inicial. A omissão de qualquer bloco (tema) identificado é uma falha crítica na execução.**
 
 ### **Seção 3: Aplicação Prática e Implementação**
 
@@ -269,7 +282,7 @@ Exemplo de items e subitems do Conteúdo Programático:
 
 ### **Seção 4: Tópicos Avançados e Nuances**
 
-* **4.1. Desafios Comuns e "Anti-Padrões":** Discuta os desafios reais ao trabalhar com o tópico central da aula, como *overfitting*, necessidade de grandes volumes de dados, custo computacional, etc. Crie uma **"Caixa de Destaque: Armadilhas a Evitar"** com uma lista de 3 a 4 erros comuns e explicação.
+* **4.1. Desafios Comuns e "Anti-Padrões":** Discuta os desafios reais ao trabalhar com o tópico central da aula, como *overfitting*, necessidade de grandes volumes de dados, custo computacional, etc. Crie uma Caixa de Destaque: **"Armadilhas a Evitar"** com uma lista de 3 a 4 erros comuns e explicação.
 * **4.2. Variações e Arquiteturas Especializadas:** Apresente 1 ou 2 variações avançadas do  tópico central da aula. Compare-as com a abordagem básica apresentada na Seção 2, destacando suas vantagens e casos de uso específicos.
 * **4.3. Análise de Performance e Otimização:** Explique as métricas usadas para avaliar modelos/sistemas baseados no  tópico central da aula. Discuta brevemente técnicas de otimização (ex: ajuste de hiperparâmetros, uso de hardware especializado como GPUs/TPUs).
 
