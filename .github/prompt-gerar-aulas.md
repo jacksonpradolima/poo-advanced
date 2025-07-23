@@ -1,1 +1,1 @@
-Leia TODO o arquivo de instruções e siga-os estritamente. Gere a aula (capítulo de livro) informada. Não sumarize ou encurte o conteúdo. Se você ficar sem tokens, então por favor, me espere dizer 'Go' para continuar gerando o conteúdo.
+Leia TODO o arquivo de instruções e siga-os estritamente. Gere a aula (capítulo de livro) informada. Não sumarize ou encurte o conteúdo. Se você ficar sem tokens ou se a resposta atingr o limite de comprimento, então por favor, me espere dizer 'Go' para continuar gerando o conteúdo.
