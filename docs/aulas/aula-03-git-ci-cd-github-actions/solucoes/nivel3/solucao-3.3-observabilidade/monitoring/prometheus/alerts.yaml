@@ -1,0 +1,35 @@
+groups:
+  - name: microservices-alerts
+    rules:
+      - alert: PodCrashLoopBackOff
+        expr: kube_pod_container_status_restarts_total > 3
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container em CrashLoopBackOff"
+          description: "O pod {{ $labels.pod }} no namespace {{ $labels.namespace }} reiniciou mais de 3 vezes."
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latência de requisição"
+          description: "A latência p95 está acima de 500ms para o serviço {{ $labels.service }}."
+      - alert: HighCPUUsage
+        expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[5m])) by (namespace, pod) / sum(kube_pod_container_resource_limits_cpu_cores{image!=""}) by (namespace, pod) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso de CPU alto"
+          description: "O uso de CPU está acima de 80% no pod {{ $labels.pod }}."
+      - alert: HighMemoryUsage
+        expr: sum(container_memory_usage_bytes{image!=""}) by (namespace, pod) / sum(kube_pod_container_resource_limits_memory_bytes{image!=""}) by (namespace, pod) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso de memória alto"
+          description: "O uso de memória está acima de 80% no pod {{ $labels.pod }}."

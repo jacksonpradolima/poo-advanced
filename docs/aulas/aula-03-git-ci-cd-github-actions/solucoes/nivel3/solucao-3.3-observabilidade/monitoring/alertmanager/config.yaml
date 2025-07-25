@@ -1,0 +1,10 @@
+global:
+  resolve_timeout: 5m
+route:
+  group_by: ['alertname']
+  receiver: 'pagerduty'
+receivers:
+  - name: 'pagerduty'
+    pagerduty_configs:
+      - service_key: '<YOUR_SERVICE_KEY>'
+        severity: '{{ .CommonLabels.severity }}'

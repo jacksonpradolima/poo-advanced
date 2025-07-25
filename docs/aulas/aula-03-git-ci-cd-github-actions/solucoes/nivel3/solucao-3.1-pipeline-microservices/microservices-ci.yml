@@ -1,0 +1,82 @@
+name: Microservices CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      user-service: ${{ steps.changes.outputs.user-service }}
+      task-service: ${{ steps.changes.outputs.task-service }}
+      notification-service: ${{ steps.changes.outputs.notification-service }}
+      analytics-service: ${{ steps.changes.outputs.analytics-service }}
+      gateway-service: ${{ steps.changes.outputs.gateway-service }}
+      infrastructure: ${{ steps.changes.outputs.infrastructure }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            user-service:
+              - 'services/user-service/**'
+            task-service:
+              - 'services/task-service/**'
+            notification-service:
+              - 'services/notification-service/**'
+            analytics-service:
+              - 'services/analytics-service/**'
+            gateway-service:
+              - 'services/gateway-service/**'
+            infrastructure:
+              - 'infrastructure/**'
+
+  build-services:
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.user-service == 'true' ||
+      needs.detect-changes.outputs.task-service == 'true' ||
+      needs.detect-changes.outputs.notification-service == 'true' ||
+      needs.detect-changes.outputs.analytics-service == 'true' ||
+      needs.detect-changes.outputs.gateway-service == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: 
+          - name: user-service
+            changed: ${{ needs.detect-changes.outputs.user-service }}
+            dockerfile: services/user-service/Dockerfile
+          - name: task-service
+            changed: ${{ needs.detect-changes.outputs.task-service }}
+            dockerfile: services/task-service/Dockerfile
+          - name: notification-service
+            changed: ${{ needs.detect-changes.outputs.notification-service }}
+            dockerfile: services/notification-service/Dockerfile
+          - name: analytics-service
+            changed: ${{ needs.detect-changes.outputs.analytics-service }}
+            dockerfile: services/analytics-service/Dockerfile
+          - name: gateway-service
+            changed: ${{ needs.detect-changes.outputs.gateway-service }}
+            dockerfile: services/gateway-service/Dockerfile
+    steps:
+      - name: Skip if no changes
+        if: matrix.service.changed != 'true'
+        run: echo "Skipping ${{ matrix.service.name }} - no changes"
+      - uses: actions/checkout@v4
+        if: matrix.service.changed == 'true'
+      - name: Build & Test ${{ matrix.service.name }}
+        if: matrix.service.changed == 'true'
+        run: |
+          cd services/${{ matrix.service.name }}
+          make test && \
+          docker build -f ${{ matrix.service.dockerfile }} -t ${{ env.REGISTRY }}/{{ github.repository }}/${{ matrix.service.name }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.REGISTRY }}/{{ github.repository }}/${{ matrix.service.name }}:${{ env.IMAGE_TAG }}
+  # ...existing steps (integration-tests, deploy)...

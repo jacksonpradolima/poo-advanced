@@ -1,0 +1,9 @@
+agent:
+  strategy: DaemonSet
+collector:
+  enabled: true
+query:
+  enabled: true
+  ingress:
+    hosts:
+      - jaeger.example.com
