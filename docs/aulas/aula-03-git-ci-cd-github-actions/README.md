@@ -53,11 +53,17 @@ tone: "profissional e didático"
       - [3.1.1. Arquitetura do Sistema e Análise de Requisitos](#311-arquitetura-do-sistema-e-análise-de-requisitos)
       - [3.1.2. Estrutura do Projeto e Organização do Repositório](#312-estrutura-do-projeto-e-organização-do-repositório)
       - [3.1.3. Implementação do Backend: FastAPI com Padrões Empresariais](#313-implementação-do-backend-fastapi-com-padrões-empresariais)
+      - [3.1.4. Database Layer com SQLAlchemy Avançado](#314-database-layer-com-sqlalchemy-avançado)
       - [3.1.5. Frontend React com TypeScript Avançado](#315-frontend-react-com-typescript-avançado)
       - [3.1.6. Workflows Avançados de CI/CD](#316-workflows-avançados-de-cicd)
-      - [3.2.3. Lições Aprendidas e Melhores Práticas](#323-lições-aprendidas-e-melhores-práticas)
-      - [3.2.4. Próximos Passos e Evolução Contínua](#324-próximos-passos-e-evolução-contínua)
+    - [3.2. Análise de Resultados e Lições Aprendidas](#32-análise-de-resultados-e-lições-aprendidas)
+      - [3.2.1. Impacto Quantitativo das Práticas Implementadas](#321-impacto-quantitativo-das-práticas-implementadas)
+      - [3.2.2. ROI (Return on Investment) da Implementação](#322-roi-return-on-investment-da-implementação)
+      - [3.2.3. Análise Qualitativa: Transformação Cultural](#323-análise-qualitativa-transformação-cultural)
     - [3.3. Conclusão da Implementação Prática](#33-conclusão-da-implementação-prática)
+      - [3.3.1. Síntese dos Resultados Obtidos](#331-síntese-dos-resultados-obtidos)
+      - [3.3.2. Lições Críticas para Implementação](#332-lições-críticas-para-implementação)
+      - [3.3.3. Conclusão Final](#333-conclusão-final)
   - [Seção 4: Tópicos Avançados e Nuances](#seção-4-tópicos-avançados-e-nuances)
     - [4.1. Desafios Comuns e "Anti-Padrões"](#41-desafios-comuns-e-anti-padrões)
       - [4.1.1. Anti-Padrões em Git e Controle de Versão](#411-anti-padrões-em-git-e-controle-de-versão)
@@ -85,10 +91,6 @@ tone: "profissional e didático"
       - [5.4.2. Documentação Oficial e Recursos Online](#542-documentação-oficial-e-recursos-online)
       - [5.4.3. Ferramentas e Plataforms](#543-ferramentas-e-plataforms)
       - [5.4.4. Comunidades e Eventos](#544-comunidades-e-eventos)
-      - [3.1.6. Workflows GitHub Actions Empresariais](#316-workflows-github-actions-empresariais)
-      - [3.1.7. Análise de Resultados e Métricas de CI/CD](#317-análise-de-resultados-e-métricas-de-cicd)
-    - [3.2. Análise de Resultados e Lições Aprendidas](#32-análise-de-resultados-e-lições-aprendidas)
-      - [3.2.1. Impacto Quantitativo das Práticas Implementadas](#321-impacto-quantitativo-das-práticas-implementadas)
 
 ---
 
@@ -2635,6 +2637,187 @@ class TaskService:
             raise
 ```
 
+
+
+#### 3.1.4. Database Layer com SQLAlchemy Avançado
+
+**Configuração de Banco de Dados com Pool de Conexões:**
+
+```python
+# backend/src/core/database.py
+"""
+Configuração avançada do banco de dados com SQLAlchemy.
+
+CONCEITO: Connection Pooling e Session Management
+Gerencia conexões de forma eficiente para alta performance
+em ambientes de produção com múltiplas requests simultâneas.
+"""
+
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator, Optional
+from functools import lru_cache
+
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.ext.asyncio import (
+    AsyncSession, 
+    AsyncEngine, 
+    create_async_engine,
+    async_sessionmaker
+)
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import QueuePool
+
+from ..config import settings
+
+logger = logging.getLogger(__name__)
+
+# Base para modelos SQLAlchemy
+Base = declarative_base()
+
+class DatabaseManager:
+    """
+    Gerenciador avançado de banco de dados.
+    
+    CONCEITO: Database Connection Management
+    Implementa padrões de pool de conexões, health checks
+    e recovery automático para garantir alta disponibilidade.
+    """
+    
+    def __init__(self):
+        self.async_engine: Optional[AsyncEngine] = None
+        self.async_session_factory: Optional[async_sessionmaker] = None
+        self._health_check_query = text("SELECT 1")
+    
+    async def initialize(self):
+        """Inicializa conexões e configurações do banco."""
+        # Configurar engine assíncrono
+        self.async_engine = create_async_engine(
+            settings.DATABASE_URL,
+            # Pool de conexões para performance
+            poolclass=QueuePool,
+            pool_size=20,                    # Conexões no pool
+            max_overflow=30,                 # Conexões extras quando necessário
+            pool_pre_ping=True,              # Verifica conexões antes de usar
+            pool_recycle=3600,               # Recicla conexões após 1h
+            
+            # Configurações de retry e timeout
+            connect_args={
+                "server_settings": {
+                    "application_name": "task-management-backend",
+                    "jit": "off"  # Otimização para PostgreSQL
+                },
+                "command_timeout": 60,
+                "connect_timeout": 10
+            },
+            
+            # Logging para debug
+            echo=settings.DEBUG,
+            echo_pool=settings.DEBUG,
+            
+            # Configurações assíncronas
+            future=True
+        )
+        
+        # Factory de sessões
+        self.async_session_factory = async_sessionmaker(
+            bind=self.async_engine,
+            class_=AsyncSession,
+            expire_on_commit=False,  # Permite acessar objetos após commit
+            autoflush=True,          # Auto-flush antes de queries
+            autocommit=False
+        )
+        
+        # Event listeners para monitoramento
+        self._setup_event_listeners()
+        
+        logger.info("Database manager initialized successfully")
+    
+    def _setup_event_listeners(self):
+        """Configura listeners para monitoramento do banco."""
+        
+        @event.listens_for(self.async_engine.sync_engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            """Configurações específicas para desenvolvimento com SQLite."""
+            if "sqlite" in str(self.async_engine.url):
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.execute("PRAGMA journal_mode=WAL")
+                cursor.close()
+        
+        @event.listens_for(self.async_engine.sync_engine, "checkout")
+        def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+            """Log quando uma conexão é retirada do pool."""
+            logger.debug(f"Connection checked out from pool. Pool size: {self.async_engine.pool.size()}")
+        
+        @event.listens_for(self.async_engine.sync_engine, "checkin")
+        def receive_checkin(dbapi_connection, connection_record):
+            """Log quando uma conexão retorna ao pool."""
+            logger.debug("Connection returned to pool")
+    
+    @asynccontextmanager
+    async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
+        """
+        Context manager para sessões de banco de dados.
+        Garante que a sessão seja fechada corretamente.
+        """
+        if not self.async_session_factory:
+            raise RuntimeError("Database not initialized. Call initialize() first.")
+        
+        async with self.async_session_factory() as session:
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+    
+    async def health_check(self) -> dict:
+        """
+        Verifica a saúde da conexão com o banco.
+        Usado para health checks da aplicação.
+        """
+        try:
+            async with self.get_session() as session:
+                result = await session.execute(self._health_check_query)
+                result.scalar()
+                
+                # Informações sobre o pool
+                pool = self.async_engine.pool
+                pool_status = {
+                    "size": pool.size(),
+                    "checked_in": pool.checkedin(),
+                    "checked_out": pool.checkedout(),
+                    "overflow": pool.overflow(),
+                    "invalid": pool.invalid()
+                }
+                
+                return {
+                    "status": "healthy",
+                    "database_url": str(self.async_engine.url).split("@")[1] if "@" in str(self.async_engine.url) else "hidden",
+                    "pool_status": pool_status
+                }
+        
+        except Exception as e:
+            logger.error(f"Database health check failed: {e}")
+            return {
+                "status": "unhealthy",
+                "error": str(e)
+            }
+
+# Instância global do gerenciador
+database_manager = DatabaseManager()
+
+# Dependência para FastAPI
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Dependência para injeção de sessão do banco em endpoints."""
+    async with database_manager.get_session() as session:
+        yield session
+```
+
 #### 3.1.5. Frontend React com TypeScript Avançado
 
 **Estrutura de Componentes e State Management:**
@@ -2908,9 +3091,10 @@ export function useTasks(options: UseTasksOptions = {}) {
 }
 ```
 
+
 #### 3.1.6. Workflows Avançados de CI/CD
 
-**Workflow Principal de Backend com Matrix Strategy:**
+**Workflow Principal Completo com Matrix Strategy:**
 
 ```yaml
 # .github/workflows/ci-backend.yml
@@ -2925,14 +3109,9 @@ on:
     paths: ['backend/**']
   workflow_dispatch:
     inputs:
-      force_deploy:
-        description: 'Force deployment even if tests fail'
-        required: false
-        default: 'false'
-        type: boolean
-      target_environment:
-        description: 'Target environment for deployment'
-        required: false
+      deploy_environment:
+        description: 'Environment to deploy to'
+        required: true
         default: 'staging'
         type: choice
         options:
@@ -2950,319 +3129,117 @@ jobs:
   code-quality:
     name: Code Quality & Security
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
-    strategy:
-      matrix:
-        tool: [black, isort, flake8, mypy, bandit, safety]
-        include:
-          - tool: black
-            check_only: true
-            args: "--check --diff"
-          - tool: isort
-            check_only: true  
-            args: "--check-only --diff"
-          - tool: flake8
-            config: ".flake8"
-          - tool: mypy
-            config: "pyproject.toml"
-          - tool: bandit
-            args: "-r src/ -f json"
-            output: "bandit-report.json"
-          - tool: safety
-            args: "--json --output safety-report.json"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Python
+      
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ env.POETRY_VERSION }}
-
-      - name: Configure Poetry
-        run: |
-          cd backend
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
-
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
-        with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-python${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
-          restore-keys: |
-            venv-${{ runner.os }}-python${{ env.PYTHON_VERSION }}-
-
-      - name: Install dependencies
-        run: |
-          cd backend
-          poetry install --with dev,test
-
-      - name: Run ${{ matrix.tool }}
-        run: |
-          cd backend
-          case "${{ matrix.tool }}" in
-            "black")
-              poetry run black ${{ matrix.args }} src/ tests/
-              ;;
-            "isort")
-              poetry run isort ${{ matrix.args }} src/ tests/
-              ;;
-            "flake8")
-              poetry run flake8 src/ tests/ --config=${{ matrix.config }}
-              ;;
-            "mypy")
-              poetry run mypy src/ --config-file=${{ matrix.config }}
-              ;;
-            "bandit")
-              poetry run bandit ${{ matrix.args }} || true
-              ;;
-            "safety")
-              poetry run safety check ${{ matrix.args }} || true
-              ;;
-          esac
-
-      - name: Upload security reports
-        if: matrix.tool == 'bandit' || matrix.tool == 'safety'
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-reports-${{ matrix.tool }}
-          path: backend/${{ matrix.output }}
-          retention-days: 30
-
-  # JOB 2: Deploy Blue-Green Strategy
-  deploy-production:
-    name: Blue-Green Production Deploy
+      
+      - name: Run linting (flake8)
+        working-directory: backend
+        run: poetry run flake8 src/ tests/
+      
+      - name: Run type checking (mypy)
+        working-directory: backend
+        run: poetry run mypy src/
+      
+      - name: Run security scan (bandit)
+        working-directory: backend
+        run: poetry run bandit -r src/
+  
+  # JOB 2: Tests with Matrix Strategy
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    needs: [code-quality]
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: https://api.taskmanagement.com
-
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+        test-type: ["unit", "integration"]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: taskmanager_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Blue-Green Deployment Script
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: poetry install --no-interaction
+      
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager_test
         run: |
-          #!/bin/bash
-          set -euo pipefail
-          
-          # CONCEITO: Blue-Green Deployment
-          # Deploy para ambiente idêntico (green) e switch de tráfego
-          # apenas após validação completa
-          
-          NAMESPACE="production"
-          SERVICE_NAME="backend-service"
-          NEW_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          
-          echo "🔄 Iniciando Blue-Green Deployment..."
-          
-          # 1. Identificar ambiente atual (blue/green)
-          CURRENT_ENV=$(kubectl get service $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.spec.selector.version}')
-          
-          if [ "$CURRENT_ENV" = "blue" ]; then
-            NEW_ENV="green"
-          else
-            NEW_ENV="blue"
-          fi
-          
-          echo "📍 Ambiente atual: $CURRENT_ENV"
-          echo "🎯 Novo ambiente: $NEW_ENV"
-          
-          # 2. Deploy para novo ambiente
-          echo "🚀 Fazendo deploy para ambiente $NEW_ENV..."
-          
-          sed -e "s/{{IMAGE}}/$NEW_IMAGE/g" \
-              -e "s/{{VERSION}}/$NEW_ENV/g" \
-              infrastructure/kubernetes/production/backend-deployment-template.yaml > \
-              /tmp/backend-deployment-$NEW_ENV.yaml
-          
-          kubectl apply -f /tmp/backend-deployment-$NEW_ENV.yaml -n $NAMESPACE
-          
-          # 3. Aguardar deployment estar pronto
-          echo "⏳ Aguardando deployment estar pronto..."
-          kubectl rollout status deployment/backend-$NEW_ENV -n $NAMESPACE --timeout=600s
-          
-          # 4. Health checks no novo ambiente
-          echo "🔍 Executando health checks..."
-          
-          # Obter IP do novo deployment
-          NEW_SERVICE_IP=$(kubectl get service backend-$NEW_ENV-service -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          
-          # Health check básico
-          for i in {1..10}; do
-            if curl -f http://$NEW_SERVICE_IP:8000/health; then
-              echo "✅ Health check $i/10 passou"
-              break
-            else
-              echo "❌ Health check $i/10 falhou, tentando novamente..."
-              sleep 10
-            fi
-            
-            if [ $i -eq 10 ]; then
-              echo "💥 Health checks falharam, abortando deployment"
-              exit 1
-            fi
-          done
-          
-          # 5. Smoke tests mais abrangentes
-          echo "🧪 Executando smoke tests..."
-          
-          python scripts/smoke_tests.py \
-            --base-url "http://$NEW_SERVICE_IP:8000" \
-            --timeout 30 \
-            --critical-endpoints "/health,/api/v1/docs,/api/v1/auth/health"
-          
-          # 6. Load test rápido
-          echo "⚡ Executando load test rápido..."
-          
-          k6 run --env BASE_URL="http://$NEW_SERVICE_IP:8000" \
-                 --duration 2m \
-                 --vus 10 \
-                 scripts/quick_load_test.js
-          
-          # 7. Switch de tráfego
-          echo "🔀 Fazendo switch de tráfego para $NEW_ENV..."
-          
-          kubectl patch service $SERVICE_NAME -n $NAMESPACE -p \
-            '{"spec":{"selector":{"version":"'$NEW_ENV'"}}}'
-          
-          # 8. Monitorar métricas pós-switch
-          echo "📊 Monitorando métricas por 2 minutos..."
-          
-          python scripts/monitor_post_deployment.py \
-            --duration 120 \
-            --service-url "https://api.taskmanagement.com" \
-            --alert-threshold-error-rate 5 \
-            --alert-threshold-response-time 1000
-          
-          # 9. Cleanup do ambiente antigo (após confirmação)
-          echo "🧹 Removendo deployment antigo ($CURRENT_ENV)..."
-          kubectl delete deployment backend-$CURRENT_ENV -n $NAMESPACE --ignore-not-found=true
-          kubectl delete service backend-$CURRENT_ENV-service -n $NAMESPACE --ignore-not-found=true
-          
-          echo "🎉 Blue-Green Deployment concluído com sucesso!"
-          echo "🌐 Novo ambiente ativo: $NEW_ENV"
-
-      - name: Post-deployment validation
+          poetry run pytest tests/unit/ \
+            --cov=src \
+            --cov-report=xml \
+            --junitxml=junit-unit-${{ matrix.python-version }}.xml \
+            --cov-fail-under=80
+      
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager_test
         run: |
-          # Validação final em produção
-          echo "✅ Validando deployment em produção..."
-          
-          PROD_URL="https://api.taskmanagement.com"
-          
-          # Test endpoints críticos
-          for endpoint in "/health" "/api/v1/docs" "/api/v1/auth/health" "/metrics"; do
-            echo "Testing $endpoint..."
-            if ! curl -f "$PROD_URL$endpoint" -H "User-Agent: GitHub-Actions-Health-Check"; then
-              echo "❌ Endpoint $endpoint falhou!"
-              exit 1
-            fi
-          done
-          
-          echo "🎯 Todos os endpoints críticos estão funcionando!"
-
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          echo "💥 Falha detectada, iniciando rollback..."
-          
-          # Determinar ambiente para rollback
-          CURRENT_ENV=$(kubectl get service backend-service -n production -o jsonpath='{.spec.selector.version}')
-          ROLLBACK_ENV=$([ "$CURRENT_ENV" = "blue" ] && echo "green" || echo "blue")
-          
-          echo "🔄 Fazendo rollback para ambiente: $ROLLBACK_ENV"
-          
-          # Switch back
-          kubectl patch service backend-service -n production -p \
-            '{"spec":{"selector":{"version":"'$ROLLBACK_ENV'"}}}'
-          
-          # Cleanup failed deployment
-          kubectl delete deployment backend-$CURRENT_ENV -n production --ignore-not-found=true
-          
-          echo "⚡ Rollback concluído"
-
-  # JOB 3: Monitoring e Alertas Pós-Deploy
-  post-deploy-monitoring:
-    name: Post-Deploy Monitoring
+          poetry run pytest tests/integration/ \
+            --junitxml=junit-integration-${{ matrix.python-version }}.xml
+  
+  # JOB 3: Build and Push Docker Image
+  build:
+    name: Build & Push Image
     runs-on: ubuntu-latest
-    needs: deploy-production
-    if: success()
-
+    needs: [code-quality, test]
+    if: github.event_name == 'push'
+    
     steps:
-      - name: Setup monitoring alerts
-        run: |
-          # CONCEITO: Observabilidade Contínua
-          # Configurar alertas específicos para o novo deployment
-          
-          echo "📊 Configurando monitoramento pós-deployment..."
-          
-          # Configurar alertas temporários mais sensíveis
-          curl -X POST "https://alertmanager.taskmanagement.com/api/v1/alerts" \
-            -H "Authorization: Bearer ${{ secrets.ALERTMANAGER_TOKEN }}" \
-            -d '{
-              "alerts": [
-                {
-                  "labels": {
-                    "alertname": "PostDeploymentErrorRate",
-                    "severity": "critical",
-                    "deployment_id": "${{ github.sha }}"
-                  },
-                  "annotations": {
-                    "summary": "Alta taxa de erro após deployment",
-                    "description": "Taxa de erro > 2% nos últimos 5 minutos"
-                  },
-                  "generatorURL": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                }
-              ]
-            }'
-
-      - name: Performance baseline capture
-        run: |
-          # Capturar métricas baseline do novo deployment
-          python scripts/capture_performance_baseline.py \
-            --environment production \
-            --deployment-id "${{ github.sha }}" \
-            --duration 300 \
-            --output baseline-${{ github.sha }}.json
-
-      - name: Schedule performance monitoring
-        run: |
-          # Agendar monitoramento contínuo por 24h
-          echo "⏰ Agendando monitoramento estendido..."
-          
-          # Criar job no sistema de monitoramento
-          curl -X POST "https://monitoring.taskmanagement.com/api/v1/jobs" \
-            -H "Authorization: Bearer ${{ secrets.MONITORING_TOKEN }}" \
-            -d '{
-              "name": "post-deployment-monitoring-${{ github.sha }}",
-              "schedule": "*/5 * * * *",
-              "duration": "24h",
-              "checks": [
-                {"type": "http", "url": "https://api.taskmanagement.com/health", "timeout": 5},
-                {"type": "metrics", "query": "rate(http_requests_total[5m])", "threshold": "> 100"},
-                {"type": "logs", "pattern": "ERROR|CRITICAL", "max_count": 10}
-              ],
-              "alerts": {
-                "slack_channel": "#deployments",
-                "email": ["devops@taskmanagement.com"]
-              }
-            }'
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+```
 
 ### 3.2. Análise de Resultados e Lições Aprendidas
 
@@ -3290,16 +3267,6 @@ A implementação do sistema completo de CI/CD com GitHub Actions resulta em mel
 | **Tempo de Build** | 45-60 min | 8-12 min | **80% redução** |
 | **Rollback Time** | 2-4 horas | 2-5 minutos | **95% redução** |
 
-**Métricas de Produtividade da Equipe:**
-
-| Aspecto | Melhoria | Impacto |
-|---------|----------|---------|
-| **Automação de Tarefas Repetitivas** | 90% | Desenvolvedores focam em features |
-| **Redução de Overhead Manual** | 60% | Menos tempo em processos |
-| **Produtividade Individual** | 40% | Mais entregas por desenvolvedor |
-| **Satisfação da Equipe** | 35% | Menos stress, mais criatividade |
-| **Onboarding de Novos Desenvolvedores** | 50% faster | Setup automatizado |
-
 #### 3.2.2. ROI (Return on Investment) da Implementação
 
 **Cálculo de Custos vs. Benefícios:**
@@ -3321,26 +3288,11 @@ class CICDROICalculator:
         self.github_actions_cost = 200  # Runners + storage
         self.infrastructure_cost = 500  # AWS/Cloud
         self.tooling_cost = 300  # Monitoring, security tools
-        self.training_cost = 1000  # One-time, amortized over 12 months
         
         # Equipe
         self.team_size = 8
         self.avg_developer_salary_monthly = 8000
         
-    def calculate_monthly_costs(self) -> dict:
-        """Calcula custos mensais da implementação."""
-        return {
-            'infrastructure': self.github_actions_cost + self.infrastructure_cost,
-            'tooling': self.tooling_cost,
-            'training_amortized': self.training_cost / 12,
-            'total_monthly': (
-                self.github_actions_cost + 
-                self.infrastructure_cost + 
-                self.tooling_cost + 
-                (self.training_cost / 12)
-            )
-        }
-    
     def calculate_monthly_savings(self) -> dict:
         """Calcula economias mensais."""
         
@@ -3348,11 +3300,13 @@ class CICDROICalculator:
         manual_deploy_time_saved = 16  # 4h/semana * 4 semanas
         bug_fixing_time_saved = 20     # Menos bugs = menos debug
         code_review_time_saved = 8     # Automated checks
+        meeting_time_saved = 4         # Menos reuniões de coordenação
         
         total_time_saved_per_dev = (
             manual_deploy_time_saved + 
             bug_fixing_time_saved + 
-            code_review_time_saved
+            code_review_time_saved + 
+            meeting_time_saved
         )
         
         # Custo por hora de desenvolvedor
@@ -3373,7 +3327,7 @@ class CICDROICalculator:
         
         return {
             'productivity_savings': productivity_savings,
-            'incident_cost_reduction': incident_cost_reduction,
+            'incident_reduction': incident_cost_reduction,
             'market_opportunity': market_opportunity_value,
             'total_monthly_savings': (
                 productivity_savings + 
@@ -3381,186 +3335,88 @@ class CICDROICalculator:
                 market_opportunity_value
             )
         }
-    
-    def calculate_roi(self, months: int = 12) -> dict:
-        """Calcula ROI para período especificado."""
-        costs = self.calculate_monthly_costs()
-        savings = self.calculate_monthly_savings()
-        
-        total_investment = costs['total_monthly'] * months
-        total_savings = savings['total_monthly_savings'] * months
-        
-        net_benefit = total_savings - total_investment
-        roi_percentage = (net_benefit / total_investment) * 100
-        
-        payback_months = total_investment / savings['total_monthly_savings']
-        
-        return {
-            'period_months': months,
-            'total_investment': total_investment,
-            'total_savings': total_savings,
-            'net_benefit': net_benefit,
-            'roi_percentage': roi_percentage,
-            'payback_months': payback_months,
-            'monthly_net_benefit': savings['total_monthly_savings'] - costs['total_monthly']
-        }
 
 # Exemplo de uso
 calculator = CICDROICalculator()
-roi_analysis = calculator.calculate_roi(months=12)
+savings = calculator.calculate_monthly_savings()
 
 print("=== ANÁLISE DE ROI CI/CD ===")
-print(f"Investimento Total (12 meses): ${roi_analysis['total_investment']:,.2f}")
-print(f"Economias Totais (12 meses): ${roi_analysis['total_savings']:,.2f}")
-print(f"Benefício Líquido: ${roi_analysis['net_benefit']:,.2f}")
-print(f"ROI: {roi_analysis['roi_percentage']:.1f}%")
-print(f"Payback: {roi_analysis['payback_months']:.1f} meses")
-print(f"Benefício Mensal: ${roi_analysis['monthly_net_benefit']:,.2f}")
+print(f"Economias de Produtividade: ${savings['productivity_savings']:,.2f}/mês")
+print(f"Redução de Incidents: ${savings['incident_reduction']:,.2f}/mês")
+print(f"Oportunidade de Mercado: ${savings['market_opportunity']:,.2f}/mês")
+print(f"Total de Economias: ${savings['total_monthly_savings']:,.2f}/mês")
 ```
 
-**Resultado da Análise:**
-```
-=== ANÁLISE DE ROI CI/CD ===
-Investimento Total (12 meses): $12,083.33
-Economias Totais (12 meses): $396,000.00
-Benefício Líquido: $383,916.67
-ROI: 3,177.4%
-Payback: 0.4 meses
-Benefício Mensal: $31,993.06
-```
+#### 3.2.3. Análise Qualitativa: Transformação Cultural
 
-#### 3.2.3. Lições Aprendidas e Melhores Práticas
+**Mudanças de Mindset:**
 
-**Sucessos Implementados:**
-
-1. **Start Small, Scale Gradually**
-   - Começamos com workflows simples e evoluímos incrementalmente
-   - Cada iteração trouxe valor imediato e aprendizado
-
-2. **Culture First, Tools Second**
-   - Investimento em treinamento e mudança cultural antes de tooling
-   - Desenvolvedores abraçaram as práticas quando viram os benefícios
-
-3. **Fail Fast, Learn Faster**
-   - Implementação de feedback loops rápidos em cada estágio
-   - Erros detectados em minutos, não semanas
-
-4. **Security as Code**
-   - Integração de security scanning desde o início
-   - Vulnerabilidades tratadas como bugs críticos
-
-5. **Observabilidade End-to-End**
-   - Métricas e logs em toda a pipeline
-   - Dashboards em tempo real para visibilidade completa
-
-**Desafios Superados:**
-
-1. **Resistência à Mudança**
-   - **Solução:** Demonstração de valor tangível e incrementalismo
-   - **Resultado:** 95% de adoção da equipe em 3 meses
-
-2. **Complexidade de Pipeline**
-   - **Solução:** Modularização e documentação detalhada
-   - **Resultado:** Novos desenvolvedores contributindo em 1 dia
-
-3. **False Positives em Testes**
-   - **Solução:** Tuning contínuo e testes mais determinísticos
-   - **Resultado:** <2% de false positives
-
-4. **Custos de Infraestrutura**
-   - **Solução:** Otimização de recursos e caching inteligente
-   - **Resultado:** 40% redução de custos em 6 meses
-
-**Anti-Padrões Evitados:**
-
-1. **Big Bang Implementation**
-   - ❌ Tentar implementar tudo de uma vez
-   - ✅ Evolução iterativa e incremental
-
-2. **Tool-Centric Approach**
-   - ❌ Focar apenas nas ferramentas
-   - ✅ Processo e cultura primeiro
-
-3. **Over-Engineering Inicial**
-   - ❌ Pipelines complexos desde o início
-   - ✅ Simplicidade que evolui conforme necessidade
-
-4. **Neglecting Developer Experience**
-   - ❌ Pipelines que atrapalham desenvolvimento
-   - ✅ Foco na produtividade e experiência do desenvolvedor
-
-#### 3.2.4. Próximos Passos e Evolução Contínua
-
-**Roadmap de Melhorias:**
-
-1. **Q1 2025: Advanced Analytics**
-   - Implementação de ML para predição de falhas
-   - Análise preditiva de performance
-   - Otimização automática de recursos
-
-2. **Q2 2025: Multi-Cloud Strategy**
-   - Deploy automatizado em AWS, Azure e GCP
-   - Load balancing entre provedores
-   - Disaster recovery automático
-
-3. **Q3 2025: AI-Powered Testing**
-   - Geração automática de casos de teste
-   - Visual regression testing com AI
-   - Análise automática de logs
-
-4. **Q4 2025: Chaos Engineering**
-   - Testes de resiliência automatizados
-   - Simulated failures em produção
-   - Auto-healing systems
-
-**Métricas de Melhoria Contínua:**
-
-```python
-# KPIs para acompanhamento contínuo
-
-DORA_METRICS = {
-    'deployment_frequency': {
-        'current': 'Multiple per day',
-        'target': 'On-demand',
-        'industry_elite': 'Multiple per day'
-    },
-    'lead_time_for_changes': {
-        'current': '2-3 hours',
-        'target': '<1 hour',
-        'industry_elite': '<1 hour'
-    },
-    'mean_time_to_recovery': {
-        'current': '15-30 minutes',
-        'target': '<15 minutes',
-        'industry_elite': '<1 hour'
-    },
-    'change_failure_rate': {
-        'current': '5%',
-        'target': '<2%',
-        'industry_elite': '0-15%'
-    }
-}
-```
+- **De "Funciona na minha máquina" para "Funciona em qualquer lugar"**
+- **De deployments manuais arriscados para releases confiáveis**
+- **De detecção tardia de problemas para feedback imediato**
+- **De silos de responsabilidade para ownership compartilhado**
 
 ### 3.3. Conclusão da Implementação Prática
 
-O projeto Sistema de Gerenciamento de Tarefas Empresarial demonstra na prática como Git, CI/CD e GitHub Actions se integram para criar um pipeline de desenvolvimento robusto e eficiente. 
+#### 3.3.1. Síntese dos Resultados Obtidos
 
-**Principais Conquistas:**
+A implementação completa do sistema de gerenciamento de tarefas com CI/CD moderno demonstrou na prática os conceitos fundamentais abordados nesta aula:
 
-1. **Qualidade Garantida:** Múltiplas camadas de validação automatizada
-2. **Velocidade de Entrega:** Deploy contínuo com confiança
-3. **Observabilidade Completa:** Visibilidade em tempo real de todo o sistema
-4. **Segurança Integrada:** Security como parte fundamental do processo
-5. **Escalabilidade Provada:** Arquitetura que suporta crescimento
+**Transformação do Desenvolvimento:**
 
-**Valor de Negócio Entregue:**
+1. **Velocidade**: Redução de 98% no tempo de entrega (semanas → horas)
+2. **Qualidade**: Diminuição de 70% nos bugs em produção
+3. **Confiabilidade**: MTTR reduzido em 85% (horas → minutos)
+4. **Produtividade**: Aumento de 40% na produtividade individual
+5. **Satisfação**: Melhoria de 35% na satisfação da equipe
 
-- **ROI de 3,177%** em 12 meses
-- **Payback em 0.4 meses**
-- **Redução de 70% nos bugs** em produção
-- **Aumento de 40% na produtividade** da equipe
-- **Redução de 98% no lead time** de entrega
+**Padrões de Excelência Estabelecidos:**
+
+- **Git Flow** estruturado com branching strategy clara
+- **Code Review** automatizado com verificações de qualidade
+- **Testing Strategy** com cobertura > 85% e testes em pipeline
+- **Security First** com scans automatizados em múltiplas camadas
+- **Deployment Strategy** com blue-green e rollback automático
+
+#### 3.3.2. Lições Críticas para Implementação
+
+**1. Começar Simples, Evoluir Incrementalmente**
+```bash
+# Evolução recomendada
+Fase 1: Basic CI (lint + test)           → 2 semanas
+Fase 2: Docker + Registry               → 1 semana  
+Fase 3: Automated Deployment           → 2 semanas
+Fase 4: Advanced Monitoring            → 1 semana
+Fase 5: Security Integration            → 1 semana
+```
+
+**2. Cultura Antes de Ferramentas**
+- Psychological safety para experimentação
+- Ownership compartilhado dos resultados
+- Aprendizado contínuo e melhoria incremental
+- Colaboração cross-functional efetiva
+
+**3. Observabilidade Como Requisito**
+- Métricas de negócio integradas ao pipeline
+- Alertas baseados em SLAs reais
+- Dashboards para visibilidade end-to-end
+- Post-mortems sem culpa para aprendizado
+
+#### 3.3.3. Conclusão Final
+
+A implementação prática demonstrou que **CI/CD não é apenas sobre ferramentas, mas sobre transformação cultural e organizacional**. Os resultados quantitativos validam que investir em automação e práticas DevOps não é apenas benéfico, mas **essencial para competitividade moderna**.
+
+O **sistema Task Management** desenvolvido serve como **blueprint replicável** para qualquer organização que deseje implementar práticas modernas de desenvolvimento. Os padrões, arquiteturas e workflows apresentados são **battle-tested** e podem ser adaptados para diferentes contextos e tecnologias.
+
+**Principais Insights:**
+
+1. **Automação Composta**: O poder real emerge da combinação de múltiplas automações
+2. **Feedback Loops**: Quanto mais rápido o feedback, maior a efetividade
+3. **Cultura de Qualidade**: Ferramentas amplificam cultura, não a criam
+4. **Monitoramento Contínuo**: Visibilidade é pré-requisito para melhoria
+5. **Evolução Incremental**: Pequenas melhorias compostas geram grandes resultados
+
+A **jornada DevOps** é contínua e evolutiva. O sistema implementado estabelece uma **base sólida** para inovação contínua, permitindo que equipes foquem no que realmente importa: **criar valor para usuários e negócio**.
 
 ## Seção 4: Tópicos Avançados e Nuances
 
@@ -4655,3233 +4511,3 @@ Este capítulo apresentou uma jornada completa através do ecossistema moderno d
 As organizações que abraçam essas práticas não apenas entregam software mais rápido e com maior qualidade, mas criam uma vantagem competitiva sustentável através da capacidade de adaptar-se rapidamente às mudanças do mercado e às necessidades dos usuários.
 
 O futuro da engenharia de software está na intersecção entre automação inteligente, colaboração efetiva e melhoria contínua - pilares que Git, CI/CD e GitHub Actions ajudam a estabelecer e manter.
-    
-    async def update_task(
-        self, 
-        task_id: UUID, 
-        task_data: TaskUpdate, 
-        user_id: UUID
-    ) -> Task:
-        """
-        Atualiza uma tarefa com validações e notificações.
-        
-        CONCEITO: Event Sourcing Principles
-        Cada mudança é registrada como evento, permitindo auditoria
-        completa e possível implementação de event sourcing futuro.
-        """
-        try:
-            # Buscar tarefa existente
-            task = await self._get_task_with_permissions(task_id, user_id)
-            
-            # Armazenar estado anterior para auditoria
-            old_state = {
-                'status': task.status,
-                'assignee_id': task.assignee_id,
-                'priority': task.priority,
-                'due_date': task.due_date
-            }
-            
-            # Validar transição de status se especificada
-            if task_data.status and task_data.status != task.status:
-                await self._validate_status_transition(task, task_data.status, user_id)
-            
-            # Aplicar mudanças
-            changes = await self._apply_task_changes(task, task_data, user_id)
-            
-            # Validações específicas baseadas nas mudanças
-            await self._validate_task_changes(task, changes, user_id)
-            
-            # Persistir mudanças
-            task.updated_at = datetime.now(timezone.utc)
-            
-            # Marcar data de conclusão se necessário
-            if task_data.status == TaskStatus.DONE and not task.completed_at:
-                task.completed_at = datetime.now(timezone.utc)
-            elif task_data.status != TaskStatus.DONE and task.completed_at:
-                task.completed_at = None
-            
-            await self.db.commit()
-            await self.db.refresh(task)
-            
-            # Invalidar cache
-            await self._invalidate_task_caches(task.project_id)
-            
-            # Registrar auditoria detalhada
-            await self.audit.log_task_updated(task, old_state, changes, user_id)
-            
-            # Notificar sobre mudanças
-            await self._notify_task_changes(task, changes, old_state)
-            
-            logger.info(f"Tarefa atualizada: {task.id} por usuário {user_id}")
-            return task
-            
-        except Exception as e:
-            await self.db.rollback()
-            logger.error(f"Erro ao atualizar tarefa {task_id}: {e}")
-            raise
-    
-    async def get_task_statistics(
-        self, 
-        project_id: Optional[UUID] = None,
-        user_id: UUID = None
-    ) -> TaskStatistics:
-        """
-        Calcula estatísticas abrangentes de tarefas.
-        
-        CONCEITO: Analytics and Reporting
-        Fornece insights sobre produtividade e estado do projeto
-        através de métricas calculadas em tempo real.
-        """
-        cache_key = f"task_stats:project:{project_id}:user:{user_id}"
-        cached_stats = await self.cache.get(cache_key)
-        
-        if cached_stats:
-            return cached_stats
-        
-        # Query base com filtros de segurança
-        base_query = select(Task)
-        
-        if project_id:
-            # Verificar acesso ao projeto
-            await self._verify_user_project_access(user_id, project_id)
-            base_query = base_query.where(Task.project_id == project_id)
-        else:
-            # Filtrar por projetos acessíveis ao usuário
-            user_projects = await self._get_user_accessible_projects(user_id)
-            base_query = base_query.where(Task.project_id.in_(user_projects))
-        
-        # Queries específicas para cada métrica
-        stats_queries = {
-            'total_tasks': select(func.count(Task.id)),
-            'completed_tasks': select(func.count(Task.id)).where(Task.status == TaskStatus.DONE),
-            'overdue_tasks': select(func.count(Task.id)).where(
-                and_(
-                    Task.due_date < datetime.now(timezone.utc),
-                    Task.status != TaskStatus.DONE
-                )
-            ),
-            'in_progress_tasks': select(func.count(Task.id)).where(Task.status == TaskStatus.IN_PROGRESS),
-            'high_priority_tasks': select(func.count(Task.id)).where(Task.priority == TaskPriority.HIGH),
-            'critical_priority_tasks': select(func.count(Task.id)).where(Task.priority == TaskPriority.CRITICAL),
-        }
-        
-        # Executar queries em paralelo
-        results = {}
-        user_projects = await self._get_user_accessible_projects(user_id)
-        
-        for key, query in stats_queries.items():
-            # Aplicar filtros base
-            if project_id:
-                query = query.where(Task.project_id == project_id)
-            else:
-                query = query.where(Task.project_id.in_(user_projects))
-            
-            result = await self.db.execute(query)
-            results[key] = result.scalar()
-        
-        # Calcular métricas mais complexas
-        completed_tasks_query = select(Task).where(
-            and_(
-                Task.status == TaskStatus.DONE,
-                Task.completed_at.is_not(None),
-                Task.created_at.is_not(None)
-            )
-        )
-        
-        if project_id:
-            completed_tasks_query = completed_tasks_query.where(Task.project_id == project_id)
-        else:
-            completed_tasks_query = completed_tasks_query.where(Task.project_id.in_(user_projects))
-        
-        completed_result = await self.db.execute(completed_tasks_query)
-        completed_tasks = completed_result.scalars().all()
-        
-        # Calcular tempo médio de conclusão
-        completion_times = []
-        variance_data = []
-        
-        for task in completed_tasks:
-            if task.completed_at and task.created_at:
-                completion_time = (task.completed_at - task.created_at).total_seconds() / 3600
-                completion_times.append(completion_time)
-                
-                if task.estimated_hours and task.actual_hours:
-                    variance = abs(float(task.actual_hours) - float(task.estimated_hours)) / float(task.estimated_hours)
-                    variance_data.append(variance)
-        
-        avg_completion_time = sum(completion_times) / len(completion_times) if completion_times else None
-        avg_variance = sum(variance_data) / len(variance_data) if variance_data else None
-        
-        # Distribuições por status e prioridade
-        status_dist_query = select(
-            Task.status,
-            func.count(Task.id)
-        ).group_by(Task.status)
-        
-        priority_dist_query = select(
-            Task.priority,
-            func.count(Task.id)
-        ).group_by(Task.priority)
-        
-        if project_id:
-            status_dist_query = status_dist_query.where(Task.project_id == project_id)
-            priority_dist_query = priority_dist_query.where(Task.project_id == project_id)
-        else:
-            status_dist_query = status_dist_query.where(Task.project_id.in_(user_projects))
-            priority_dist_query = priority_dist_query.where(Task.project_id.in_(user_projects))
-        
-        status_result = await self.db.execute(status_dist_query)
-        priority_result = await self.db.execute(priority_dist_query)
-        
-        status_distribution = {status: count for status, count in status_result.all()}
-        priority_distribution = {priority: count for priority, count in priority_result.all()}
-        
-        # Taxa de conclusão dos últimos 30 dias
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        
-        recent_completed = select(func.count(Task.id)).where(
-            and_(
-                Task.status == TaskStatus.DONE,
-                Task.completed_at >= thirty_days_ago
-            )
-        )
-        
-        recent_created = select(func.count(Task.id)).where(
-            Task.created_at >= thirty_days_ago
-        )
-        
-        if project_id:
-            recent_completed = recent_completed.where(Task.project_id == project_id)
-            recent_created = recent_created.where(Task.project_id == project_id)
-        else:
-            recent_completed = recent_completed.where(Task.project_id.in_(user_projects))
-            recent_created = recent_created.where(Task.project_id.in_(user_projects))
-        
-        recent_completed_count = (await self.db.execute(recent_completed)).scalar()
-        recent_created_count = (await self.db.execute(recent_created)).scalar()
-        
-        completion_rate = recent_completed_count / recent_created_count if recent_created_count > 0 else 0.0
-        created_vs_completed = recent_created_count / recent_completed_count if recent_completed_count > 0 else 0.0
-        
-        # Construir objeto de estatísticas
-        statistics = TaskStatistics(
-            total_tasks=results['total_tasks'],
-            completed_tasks=results['completed_tasks'],
-            overdue_tasks=results['overdue_tasks'],
-            in_progress_tasks=results['in_progress_tasks'],
-            high_priority_tasks=results['high_priority_tasks'],
-            critical_priority_tasks=results['critical_priority_tasks'],
-            average_completion_time_hours=avg_completion_time,
-            estimated_vs_actual_variance=avg_variance,
-            status_distribution=status_distribution,
-            priority_distribution=priority_distribution,
-            completion_rate_last_30_days=completion_rate,
-            created_vs_completed_ratio=created_vs_completed
-        )
-        
-        # Cache por 10 minutos
-        await self.cache.set(cache_key, statistics, ttl=600)
-        
-        return statistics
-```
-
-#### 3.1.5. Frontend React com TypeScript Avançado
-
-**Estrutura de Componentes e State Management:**
-
-```typescript
-// frontend/src/types/task.types.ts
-/**
- * Tipos TypeScript para o sistema de tarefas.
- * 
- * CONCEITO: Type Safety
- * TypeScript provides compile-time type checking, reducing runtime errors
- * and improving developer experience with autocomplete and refactoring.
- */
-
-export enum TaskStatus {
-  DRAFT = 'draft',
-  TODO = 'todo',
-  IN_PROGRESS = 'in_progress',
-  IN_REVIEW = 'in_review',
-  BLOCKED = 'blocked',
-  DONE = 'done',
-  CANCELLED = 'cancelled'
-}
-
-export enum TaskPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  project_id: string;
-  assignee_id?: string;
-  creator_id: string;
-  created_at: string;
-  updated_at: string;
-  due_date?: string;
-  completed_at?: string;
-  estimated_hours?: number;
-  actual_hours?: number;
-  story_points?: number;
-  tags: string[];
-  metadata: Record<string, any>;
-  is_overdue: boolean;
-  completion_percentage: number;
-  project_name?: string;
-  assignee_name?: string;
-  creator_name?: string;
-}
-
-export interface TaskCreate {
-  title: string;
-  description?: string;
-  priority: TaskPriority;
-  project_id: string;
-  assignee_id?: string;
-  due_date?: string;
-  estimated_hours?: number;
-  story_points?: number;
-  tags: string[];
-  metadata: Record<string, any>;
-}
-
-export interface TaskUpdate {
-  title?: string;
-  description?: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  assignee_id?: string;
-  due_date?: string;
-  estimated_hours?: number;
-  actual_hours?: number;
-  story_points?: number;
-  tags?: string[];
-  metadata?: Record<string, any>;
-}
-
-export interface TaskFilter {
-  project_id?: string;
-  assignee_id?: string;
-  creator_id?: string;
-  status?: TaskStatus[];
-  priority?: TaskPriority[];
-  tags?: string[];
-  created_after?: string;
-  created_before?: string;
-  due_after?: string;
-  due_before?: string;
-  overdue_only: boolean;
-  completed_only: boolean;
-  skip: number;
-  limit: number;
-  sort_by: string;
-  sort_order: 'asc' | 'desc';
-}
-
-export interface TaskStatistics {
-  total_tasks: number;
-  completed_tasks: number;
-  overdue_tasks: number;
-  in_progress_tasks: number;
-  high_priority_tasks: number;
-  critical_priority_tasks: number;
-  average_completion_time_hours?: number;
-  estimated_vs_actual_variance?: number;
-  status_distribution: Record<TaskStatus, number>;
-  priority_distribution: Record<TaskPriority, number>;
-  completion_rate_last_30_days: number;
-  created_vs_completed_ratio: number;
-}
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  skip: number;
-  limit: number;
-  has_next: boolean;
-  has_previous: boolean;
-}
-
-// Estado da aplicação
-export interface TaskState {
-  tasks: Task[];
-  currentTask: Task | null;
-  statistics: TaskStatistics | null;
-  filters: TaskFilter;
-  loading: boolean;
-  error: string | null;
-  totalCount: number;
-  selectedTasks: string[];
-}
-
-// Actions para Redux Toolkit
-export interface TaskActions {
-  loadTasks: (filters: Partial<TaskFilter>) => void;
-  createTask: (task: TaskCreate) => void;
-  updateTask: (id: string, task: TaskUpdate) => void;
-  deleteTask: (id: string) => void;
-  selectTask: (id: string) => void;
-  clearSelection: () => void;
-  setFilters: (filters: Partial<TaskFilter>) => void;
-  loadStatistics: (projectId?: string) => void;
-}
-```
-
-**Hooks Customizados para Gerenciamento de Estado:**
-
-```typescript
-// frontend/src/hooks/useTasks.ts
-/**
- * Hook customizado para gerenciamento de tarefas.
- * 
- * CONCEITO: Custom Hooks Pattern
- * Encapsula lógica complexa de estado e efeitos em hooks reutilizáveis,
- * promovendo separação de responsabilidades e testabilidade.
- */
-
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { debounce } from 'lodash';
-
-import { RootState } from '../store';
-import { taskActions } from '../store/taskSlice';
-import { TaskFilter, TaskCreate, TaskUpdate, Task } from '../types/task.types';
-import { useNotification } from './useNotification';
-import { useWebSocket } from './useWebSocket';
-
-export interface UseTasksOptions {
-  autoRefresh?: boolean;
-  refreshInterval?: number;
-  enableRealTime?: boolean;
-}
-
-export function useTasks(options: UseTasksOptions = {}) {
-  const {
-    autoRefresh = false,
-    refreshInterval = 30000, // 30 segundos
-    enableRealTime = true
-  } = options;
-
-  const dispatch = useDispatch();
-  const { showSuccess, showError } = useNotification();
-  const { subscribe, unsubscribe } = useWebSocket();
-  
-  // Selectors do Redux
-  const {
-    tasks,
-    currentTask,
-    statistics,
-    filters,
-    loading,
-    error,
-    totalCount,
-    selectedTasks
-  } = useSelector((state: RootState) => state.tasks);
-
-  // Refs para controle de timers
-  const refreshTimerRef = useRef<NodeJS.Timeout>();
-  const lastRefreshRef = useRef<number>(Date.now());
-
-  // Debounced filter function para evitar muitas requests
-  const debouncedLoadTasks = useMemo(
-    () => debounce((newFilters: Partial<TaskFilter>) => {
-      dispatch(taskActions.loadTasks(newFilters));
-    }, 500),
-    [dispatch]
-  );
-
-  // Carregar tarefas com filtros
-  const loadTasks = useCallback((newFilters: Partial<TaskFilter> = {}) => {
-    const mergedFilters = { ...filters, ...newFilters };
-    debouncedLoadTasks(mergedFilters);
-  }, [filters, debouncedLoadTasks]);
-
-  // Criar nova tarefa
-  const createTask = useCallback(async (taskData: TaskCreate) => {
-    try {
-      await dispatch(taskActions.createTask(taskData)).unwrap();
-      showSuccess('Tarefa criada com sucesso!');
-      
-      // Recarregar lista para incluir nova tarefa
-      loadTasks();
-    } catch (error: any) {
-      showError(error.message || 'Erro ao criar tarefa');
-      throw error;
-    }
-  }, [dispatch, showSuccess, showError, loadTasks]);
-
-  // Atualizar tarefa existente
-  const updateTask = useCallback(async (id: string, taskData: TaskUpdate) => {
-    try {
-      await dispatch(taskActions.updateTask({ id, data: taskData })).unwrap();
-      showSuccess('Tarefa atualizada com sucesso!');
-    } catch (error: any) {
-      showError(error.message || 'Erro ao atualizar tarefa');
-      throw error;
-    }
-  }, [dispatch, showSuccess, showError]);
-
-  // Deletar tarefa
-  const deleteTask = useCallback(async (id: string) => {
-    try {
-      await dispatch(taskActions.deleteTask(id)).unwrap();
-      showSuccess('Tarefa removida com sucesso!');
-      
-      // Recarregar lista
-      loadTasks();
-    } catch (error: any) {
-      showError(error.message || 'Erro ao remover tarefa');
-      throw error;
-    }
-  }, [dispatch, showSuccess, showError, loadTasks]);
-
-  // Operações em lote
-  const bulkUpdateTasks = useCallback(async (
-    taskIds: string[], 
-    updates: TaskUpdate
-  ) => {
-    try {
-      await Promise.all(
-        taskIds.map(id => dispatch(taskActions.updateTask({ id, data: updates })).unwrap())
-      );
-      showSuccess(`${taskIds.length} tarefas atualizadas com sucesso!`);
-      
-      // Limpar seleção
-      dispatch(taskActions.clearSelection());
-    } catch (error: any) {
-      showError(error.message || 'Erro ao atualizar tarefas');
-      throw error;
-    }
-  }, [dispatch, showSuccess, showError]);
-
-  // Filtros e busca
-  const setFilters = useCallback((newFilters: Partial<TaskFilter>) => {
-    dispatch(taskActions.setFilters(newFilters));
-    loadTasks(newFilters);
-  }, [dispatch, loadTasks]);
-
-  const searchTasks = useCallback((query: string) => {
-    setFilters({ search: query, skip: 0 });
-  }, [setFilters]);
-
-  // Seleção de tarefas
-  const selectTask = useCallback((id: string) => {
-    dispatch(taskActions.selectTask(id));
-  }, [dispatch]);
-
-  const selectAllTasks = useCallback(() => {
-    const allIds = tasks.map(task => task.id);
-    dispatch(taskActions.setSelection(allIds));
-  }, [dispatch, tasks]);
-
-  const clearSelection = useCallback(() => {
-    dispatch(taskActions.clearSelection());
-  }, [dispatch]);
-
-  // Estatísticas
-  const loadStatistics = useCallback((projectId?: string) => {
-    dispatch(taskActions.loadStatistics(projectId));
-  }, [dispatch]);
-
-  // Refresh automático
-  const startAutoRefresh = useCallback(() => {
-    if (refreshTimerRef.current) {
-      clearInterval(refreshTimerRef.current);
-    }
-
-    refreshTimerRef.current = setInterval(() => {
-      // Só atualiza se a página estiver visível e não houver ação recente
-      if (document.visibilityState === 'visible' && 
-          Date.now() - lastRefreshRef.current > refreshInterval) {
-        loadTasks();
-        lastRefreshRef.current = Date.now();
-      }
-    }, refreshInterval);
-  }, [loadTasks, refreshInterval]);
-
-  const stopAutoRefresh = useCallback(() => {
-    if (refreshTimerRef.current) {
-      clearInterval(refreshTimerRef.current);
-      refreshTimerRef.current = undefined;
-    }
-  }, []);
-
-  // WebSocket para atualizações em tempo real
-  useEffect(() => {
-    if (!enableRealTime) return;
-
-    const handleTaskUpdate = (data: { task: Task; action: string }) => {
-      const { task, action } = data;
-      
-      switch (action) {
-        case 'created':
-          showSuccess(`Nova tarefa criada: ${task.title}`);
-          loadTasks();
-          break;
-        case 'updated':
-          showSuccess(`Tarefa atualizada: ${task.title}`);
-          dispatch(taskActions.updateTaskInState(task));
-          break;
-        case 'deleted':
-          showSuccess(`Tarefa removida: ${task.title}`);
-          dispatch(taskActions.removeTaskFromState(task.id));
-          break;
-      }
-    };
-
-    subscribe('task_update', handleTaskUpdate);
-
-    return () => {
-      unsubscribe('task_update', handleTaskUpdate);
-    };
-  }, [enableRealTime, subscribe, unsubscribe, showSuccess, loadTasks, dispatch]);
-
-  // Auto refresh
-  useEffect(() => {
-    if (autoRefresh) {
-      startAutoRefresh();
-      return stopAutoRefresh;
-    }
-  }, [autoRefresh, startAutoRefresh, stopAutoRefresh]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      stopAutoRefresh();
-      debouncedLoadTasks.cancel();
-    };
-  }, [stopAutoRefresh, debouncedLoadTasks]);
-
-  // Computed values
-  const hasSelection = selectedTasks.length > 0;
-  const canBulkEdit = hasSelection && selectedTasks.length > 1;
-  const isFiltered = Object.keys(filters).some(key => 
-    key !== 'skip' && key !== 'limit' && filters[key as keyof TaskFilter]
-  );
-
-  return {
-    // Estado
-    tasks,
-    currentTask,
-    statistics,
-    filters,
-    loading,
-    error,
-    totalCount,
-    selectedTasks,
-    
-    // Computed
-    hasSelection,
-    canBulkEdit,
-    isFiltered,
-    
-    // Operações CRUD
-    loadTasks,
-    createTask,
-    updateTask,
-    deleteTask,
-    bulkUpdateTasks,
-    
-    // Filtros e busca
-    setFilters,
-    searchTasks,
-    
-    // Seleção
-    selectTask,
-    selectAllTasks,
-    clearSelection,
-    
-    // Estatísticas
-    loadStatistics,
-    
-    // Controle de refresh
-    startAutoRefresh,
-    stopAutoRefresh
-  };
-}
-```
-
-**Componente Principal de Lista de Tarefas:**
-
-```typescript
-// frontend/src/components/TaskList/TaskList.tsx
-/**
- * Componente principal para listagem de tarefas.
- * 
- * CONCEITO: Container/Presentation Pattern
- * Separa lógica de negócio (container) da apresentação (component),
- * facilitando testes e manutenibilidade.
- */
-
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  Checkbox,
-  IconButton,
-  Chip,
-  Typography,
-  LinearProgress,
-  Menu,
-  MenuItem,
-  Dialog,
-  Toolbar,
-  alpha,
-  useTheme,
-  Tooltip,
-  Badge
-} from '@mui/material';
-import {
-  MoreVert as MoreVertIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Assignment as AssignmentIcon,
-  Schedule as ScheduleIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon
-} from '@mui/icons-material';
-import { format, isAfter, isPast } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-
-import { useTasks } from '../../hooks/useTasks';
-import { Task, TaskStatus, TaskPriority, TaskFilter } from '../../types/task.types';
-import { TaskFilters } from './TaskFilters';
-import { TaskForm } from './TaskForm';
-import { BulkActions } from './BulkActions';
-import { TaskStatusIcon } from './TaskStatusIcon';
-import { PriorityChip } from './PriorityChip';
-import { ConfirmDialog } from '../common/ConfirmDialog';
-import { ErrorBoundary } from '../common/ErrorBoundary';
-
-// Interfaces para props
-interface TaskListProps {
-  projectId?: string;
-  compactMode?: boolean;
-  showFilters?: boolean;
-  showBulkActions?: boolean;
-  onTaskClick?: (task: Task) => void;
-  onTaskEdit?: (task: Task) => void;
-  onTaskDelete?: (task: Task) => void;
-}
-
-interface TaskRowProps {
-  task: Task;
-  selected: boolean;
-  onSelect: (id: string) => void;
-  onEdit: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onClick?: (task: Task) => void;
-  compactMode: boolean;
-}
-
-// Componente de linha da tabela
-const TaskRow: React.FC<TaskRowProps> = React.memo(({
-  task,
-  selected,
-  onSelect,
-  onEdit,
-  onDelete,
-  onClick,
-  compactMode
-}) => {
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleMenuClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-  }, []);
-
-  const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
-  const handleEdit = useCallback(() => {
-    onEdit(task);
-    handleMenuClose();
-  }, [task, onEdit, handleMenuClose]);
-
-  const handleDelete = useCallback(() => {
-    onDelete(task);
-    handleMenuClose();
-  }, [task, onDelete, handleMenuClose]);
-
-  const handleRowClick = useCallback(() => {
-    if (onClick) {
-      onClick(task);
-    }
-  }, [task, onClick]);
-
-  const handleSelectChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    event.stopPropagation();
-    onSelect(task.id);
-  }, [task.id, onSelect]);
-
-  // Formatação de data com tratamento de timezone
-  const formatDate = useCallback((dateString?: string) => {
-    if (!dateString) return '-';
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
-    } catch {
-      return 'Data inválida';
-    }
-  }, []);
-
-  // Indicadores visuais
-  const isOverdue = task.is_overdue;
-  const isDone = task.status === TaskStatus.DONE;
-  const isCritical = task.priority === TaskPriority.CRITICAL;
-
-  // Styles condicionais
-  const rowStyle = useMemo(() => ({
-    backgroundColor: selected ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
-    cursor: onClick ? 'pointer' : 'default',
-    opacity: isDone ? 0.7 : 1,
-    borderLeft: isCritical ? `4px solid ${theme.palette.error.main}` : 
-                isOverdue ? `4px solid ${theme.palette.warning.main}` : 'none',
-    '&:hover': {
-      backgroundColor: alpha(theme.palette.action.hover, 0.04)
-    }
-  }), [selected, onClick, isDone, isCritical, isOverdue, theme]);
-
-  return (
-    <TableRow sx={rowStyle} onClick={handleRowClick}>
-      <TableCell padding="checkbox">
-        <Checkbox
-          checked={selected}
-          onChange={handleSelectChange}
-          inputProps={{ 'aria-label': `Selecionar tarefa ${task.title}` }}
-        />
-      </TableCell>
-      
-      <TableCell>
-        <Box display="flex" alignItems="center" gap={1}>
-          <TaskStatusIcon status={task.status} />
-          <Box>
-            <Typography 
-              variant={compactMode ? "body2" : "body1"} 
-              fontWeight={task.priority === TaskPriority.HIGH ? 600 : 400}
-              sx={{ 
-                textDecoration: isDone ? 'line-through' : 'none',
-                color: isDone ? 'text.secondary' : 'text.primary'
-              }}
-            >
-              {task.title}
-            </Typography>
-            {!compactMode && task.description && (
-              <Typography variant="body2" color="text.secondary" noWrap>
-                {task.description}
-              </Typography>
-            )}
-          </Box>
-        </Box>
-      </TableCell>
-
-      <TableCell>
-        <PriorityChip priority={task.priority} />
-      </TableCell>
-
-      <TableCell>
-        <Box display="flex" alignItems="center" gap={1}>
-          {task.assignee_name ? (
-            <Tooltip title={task.assignee_name}>
-              <Chip
-                icon={<AssignmentIcon />}
-                label={task.assignee_name.split(' ')[0]}
-                size="small"
-                variant="outlined"
-              />
-            </Tooltip>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Não atribuída
-            </Typography>
-          )}
-        </Box>
-      </TableCell>
-
-      <TableCell>
-        <Box display="flex" alignItems="center" gap={1}>
-          {task.due_date ? (
-            <>
-              <ScheduleIcon 
-                fontSize="small" 
-                color={isOverdue ? 'error' : 'action'} 
-              />
-              <Typography 
-                variant="body2" 
-                color={isOverdue ? 'error' : 'text.primary'}
-              >
-                {formatDate(task.due_date)}
-              </Typography>
-              {isOverdue && (
-                <WarningIcon fontSize="small" color="error" />
-              )}
-            </>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Sem prazo
-            </Typography>
-          )}
-        </Box>
-      </TableCell>
-
-      {!compactMode && (
-        <TableCell>
-          <Box display="flex" alignItems="center" gap={1}>
-            <LinearProgress
-              variant="determinate"
-              value={task.completion_percentage}
-              sx={{ width: 60, height: 6 }}
-              color={isDone ? 'success' : 'primary'}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {task.completion_percentage}%
-            </Typography>
-          </Box>
-        </TableCell>
-      )}
-
-      <TableCell>
-        <Box display="flex" gap={0.5} flexWrap="wrap">
-          {task.tags.slice(0, compactMode ? 1 : 3).map(tag => (
-            <Chip 
-              key={tag} 
-              label={tag} 
-              size="small" 
-              variant="outlined"
-              sx={{ fontSize: '0.7rem' }}
-            />
-          ))}
-          {task.tags.length > (compactMode ? 1 : 3) && (
-            <Chip 
-              label={`+${task.tags.length - (compactMode ? 1 : 3)}`} 
-              size="small" 
-              variant="outlined"
-              color="primary"
-            />
-          )}
-        </Box>
-      </TableCell>
-
-      <TableCell align="right">
-        <IconButton
-          size="small"
-          onClick={handleMenuClick}
-          aria-label="Mais opções"
-        >
-          <MoreVertIcon />
-        </IconButton>
-        
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <MenuItem onClick={handleEdit}>
-            <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            Editar
-          </MenuItem>
-          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-            <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-            Excluir
-          </MenuItem>
-        </Menu>
-      </TableCell>
-    </TableRow>
-  );
-});
-
-TaskRow.displayName = 'TaskRow';
-
-// Componente principal
-export const TaskList: React.FC<TaskListProps> = ({
-  projectId,
-  compactMode = false,
-  showFilters = true,
-  showBulkActions = true,
-  onTaskClick,
-  onTaskEdit,
-  onTaskDelete
-}) => {
-  const {
-    tasks,
-    loading,
-    error,
-    totalCount,
-    selectedTasks,
-    filters,
-    loadTasks,
-    setFilters,
-    selectTask,
-    selectAllTasks,
-    clearSelection,
-    updateTask,
-    deleteTask
-  } = useTasks({ autoRefresh: true, enableRealTime: true });
-
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
-  const [showTaskForm, setShowTaskForm] = useState(false);
-
-  // Carregar tarefas iniciais
-  useEffect(() => {
-    const initialFilters: Partial<TaskFilter> = {};
-    if (projectId) {
-      initialFilters.project_id = projectId;
-    }
-    loadTasks(initialFilters);
-  }, [projectId, loadTasks]);
-
-  // Handlers
-  const handlePageChange = useCallback((event: unknown, newPage: number) => {
-    setFilters({ skip: newPage * filters.limit });
-  }, [setFilters, filters.limit]);
-
-  const handleRowsPerPageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = parseInt(event.target.value, 10);
-    setFilters({ limit: newLimit, skip: 0 });
-  }, [setFilters]);
-
-  const handleSelectAll = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      selectAllTasks();
-    } else {
-      clearSelection();
-    }
-  }, [selectAllTasks, clearSelection]);
-
-  const handleTaskEdit = useCallback((task: Task) => {
-    if (onTaskEdit) {
-      onTaskEdit(task);
-    } else {
-      setEditingTask(task);
-    }
-  }, [onTaskEdit]);
-
-  const handleTaskDelete = useCallback((task: Task) => {
-    if (onTaskDelete) {
-      onTaskDelete(task);
-    } else {
-      setDeletingTask(task);
-    }
-  }, [onTaskDelete]);
-
-  const handleDeleteConfirm = useCallback(async () => {
-    if (deletingTask) {
-      try {
-        await deleteTask(deletingTask.id);
-        setDeletingTask(null);
-      } catch (error) {
-        // Error é tratado pelo hook
-      }
-    }
-  }, [deletingTask, deleteTask]);
-
-  const handleTaskFormSave = useCallback(async (taskData: any) => {
-    try {
-      if (editingTask) {
-        await updateTask(editingTask.id, taskData);
-        setEditingTask(null);
-      }
-      setShowTaskForm(false);
-    } catch (error) {
-      // Error é tratado pelo hook
-    }
-  }, [editingTask, updateTask]);
-
-  // Computed values
-  const numSelected = selectedTasks.length;
-  const isIndeterminate = numSelected > 0 && numSelected < tasks.length;
-  const isAllSelected = numSelected === tasks.length && tasks.length > 0;
-  const currentPage = Math.floor(filters.skip / filters.limit);
-
-  if (error) {
-    return (
-      <Paper sx={{ p: 2 }}>
-        <Typography color="error">
-          Erro ao carregar tarefas: {error}
-        </Typography>
-      </Paper>
-    );
-  }
-
-  return (
-    <ErrorBoundary>
-      <Box>
-        {/* Filtros */}
-        {showFilters && (
-          <TaskFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            projectId={projectId}
-          />
-        )}
-
-        {/* Ações em lote */}
-        {showBulkActions && numSelected > 0 && (
-          <BulkActions
-            selectedTasks={selectedTasks}
-            onClearSelection={clearSelection}
-          />
-        )}
-
-        {/* Toolbar */}
-        <Toolbar
-          sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
-            ...(numSelected > 0 && {
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-            }),
-          }}
-        >
-          {numSelected > 0 ? (
-            <Typography
-              sx={{ flex: '1 1 100%' }}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
-            >
-              {numSelected} tarefa{numSelected > 1 ? 's' : ''} selecionada{numSelected > 1 ? 's' : ''}
-            </Typography>
-          ) : (
-            <Typography
-              sx={{ flex: '1 1 100%' }}
-              variant="h6"
-              component="div"
-            >
-              Tarefas
-              <Badge badgeContent={totalCount} color="primary" sx={{ ml: 2 }} />
-            </Typography>
-          )}
-        </Toolbar>
-
-        {/* Tabela */}
-        <TableContainer component={Paper}>
-          {loading && <LinearProgress />}
-          
-          <Table size={compactMode ? 'small' : 'medium'}>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    indeterminate={isIndeterminate}
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                    inputProps={{ 'aria-label': 'Selecionar todas as tarefas' }}
-                  />
-                </TableCell>
-                <TableCell>Título</TableCell>
-                <TableCell>Prioridade</TableCell>
-                <TableCell>Responsável</TableCell>
-                <TableCell>Prazo</TableCell>
-                {!compactMode && <TableCell>Progresso</TableCell>}
-                <TableCell>Tags</TableCell>
-                <TableCell align="right">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  selected={selectedTasks.includes(task.id)}
-                  onSelect={selectTask}
-                  onEdit={handleTaskEdit}
-                  onDelete={handleTaskDelete}
-                  onClick={onTaskClick}
-                  compactMode={compactMode}
-                />
-              ))}
-              
-              {!loading && tasks.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={compactMode ? 7 : 8} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
-                      Nenhuma tarefa encontrada
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Paginação */}
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50, 100]}
-          component="div"
-          count={totalCount}
-          rowsPerPage={filters.limit}
-          page={currentPage}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          labelRowsPerPage="Linhas por página:"
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-          }
-        />
-
-        {/* Dialogs */}
-        {editingTask && (
-          <TaskForm
-            open={Boolean(editingTask)}
-            task={editingTask}
-            onSave={handleTaskFormSave}
-            onCancel={() => setEditingTask(null)}
-          />
-        )}
-
-        <ConfirmDialog
-          open={Boolean(deletingTask)}
-          title="Confirmar exclusão"
-          message={`Tem certeza que deseja excluir a tarefa "${deletingTask?.title}"?`}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setDeletingTask(null)}
-          confirmText="Excluir"
-          confirmColor="error"
-        />
-      </Box>
-    </ErrorBoundary>
-  );
-};
-
-export default TaskList;
-```
-
-#### 3.1.6. Workflows GitHub Actions Empresariais
-
-**Workflow Principal de CI/CD para Backend:**
-
-```yaml
-# .github/workflows/ci-backend.yml
-name: Backend CI/CD Pipeline
-
-on:
-  push:
-    branches: [main, develop, 'feature/**', 'hotfix/**']
-    paths: ['backend/**', '.github/workflows/ci-backend.yml']
-  pull_request:
-    branches: [main, develop]
-    paths: ['backend/**']
-    types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
-    inputs:
-      deployment_target:
-        description: 'Target environment for deployment'
-        required: false
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
-      run_security_scan:
-        description: 'Run security vulnerability scan'
-        required: false
-        default: true
-        type: boolean
-      skip_tests:
-        description: 'Skip test execution (emergency only)'
-        required: false
-        default: false
-        type: boolean
-
-env:
-  PYTHON_VERSION: '3.12'
-  POETRY_VERSION: '1.7.1'
-  NODE_VERSION: '18'
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/backend
-
-# Configuração de concorrência para economizar recursos
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
-
-jobs:
-  # JOB 1: Análise de mudanças para otimizar pipeline
-  detect-changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      backend-changed: ${{ steps.changes.outputs.backend }}
-      tests-changed: ${{ steps.changes.outputs.tests }}
-      docs-changed: ${{ steps.changes.outputs.docs }}
-      config-changed: ${{ steps.changes.outputs.config }}
-      dependencies-changed: ${{ steps.changes.outputs.dependencies }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Detect file changes
-        id: changes
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            backend:
-              - 'backend/src/**'
-              - 'backend/tests/**'
-            tests:
-              - 'backend/tests/**'
-            docs:
-              - 'backend/docs/**'
-              - '*.md'
-            config:
-              - 'backend/pyproject.toml'
-              - 'backend/requirements/**'
-              - 'backend/docker/**'
-              - '.github/workflows/**'
-            dependencies:
-              - 'backend/requirements/**'
-              - 'backend/pyproject.toml'
-
-  # JOB 2: Validação de código e qualidade
-  code-quality:
-    name: Code Quality & Security
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend-changed == 'true'
-    
-    strategy:
-      matrix:
-        check-type: [linting, security, formatting, complexity]
-        include:
-          - check-type: linting
-            tools: "flake8,pylint,mypy"
-          - check-type: security
-            tools: "bandit,safety,semgrep"
-          - check-type: formatting
-            tools: "black,isort"
-          - check-type: complexity
-            tools: "radon,xenon"
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Python environment
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-          requirements-file: 'backend/requirements/dev.txt'
-          cache-key-prefix: ${{ matrix.check-type }}
-
-      - name: Run linting checks
-        if: matrix.check-type == 'linting'
-        run: |
-          cd backend
-          echo "🔍 Running static analysis..."
-          
-          # Type checking with mypy
-          echo "::group::Type checking with mypy"
-          mypy src/ --config-file pyproject.toml --show-error-codes --show-error-context
-          echo "::endgroup::"
-          
-          # Linting with flake8
-          echo "::group::Linting with flake8"
-          flake8 src/ tests/ --config=.flake8 --statistics --tee --output-file=flake8-report.txt
-          echo "::endgroup::"
-          
-          # Advanced linting with pylint
-          echo "::group::Advanced linting with pylint"
-          pylint src/ --rcfile=pyproject.toml --output-format=json:pylint-report.json,colorized
-          echo "::endgroup::"
-
-      - name: Run security analysis
-        if: matrix.check-type == 'security'
-        run: |
-          cd backend
-          echo "🔒 Running security analysis..."
-          
-          # Security linting with bandit
-          echo "::group::Security scan with bandit"
-          bandit -r src/ -f json -o bandit-report.json
-          bandit -r src/ -f txt
-          echo "::endgroup::"
-          
-          # Dependency vulnerability scan
-          echo "::group::Dependency security scan"
-          safety check --json --output safety-report.json
-          safety check
-          echo "::endgroup::"
-          
-          # SAST with semgrep
-          echo "::group::SAST with semgrep"
-          semgrep --config=auto src/ --json --output=semgrep-report.json
-          echo "::endgroup::"
-
-      - name: Run formatting checks
-        if: matrix.check-type == 'formatting'
-        run: |
-          cd backend
-          echo "🎨 Checking code formatting..."
-          
-          # Check formatting with black
-          echo "::group::Code formatting check"
-          black --check --diff --color src/ tests/
-          echo "::endgroup::"
-          
-          # Check import sorting
-          echo "::group::Import sorting check"
-          isort --check-only --diff --color src/ tests/
-          echo "::endgroup::"
-
-      - name: Run complexity analysis
-        if: matrix.check-type == 'complexity'
-        run: |
-          cd backend
-          echo "📊 Analyzing code complexity..."
-          
-          # Cyclomatic complexity
-          echo "::group::Cyclomatic complexity analysis"
-          radon cc src/ --min=B --show-complexity --json > radon-cc-report.json
-          radon cc src/ --min=B --show-complexity
-          echo "::endgroup::"
-          
-          # Maintainability index
-          echo "::group::Maintainability index"
-          radon mi src/ --min=B --show --json > radon-mi-report.json
-          radon mi src/ --min=B --show
-          echo "::endgroup::"
-          
-          # Halstead metrics
-          echo "::group::Halstead complexity metrics"
-          radon hal src/ --json > radon-hal-report.json
-          echo "::endgroup::"
-
-      - name: Upload analysis reports
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: code-analysis-${{ matrix.check-type }}-reports
-          path: |
-            backend/*-report.json
-            backend/*-report.txt
-          retention-days: 30
-
-      - name: Comment PR with analysis results
-        if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            
-            // Ler relatórios gerados
-            const reportsDir = 'backend';
-            const reports = [];
-            
-            try {
-              if (fs.existsSync(path.join(reportsDir, 'flake8-report.txt'))) {
-                const flake8 = fs.readFileSync(path.join(reportsDir, 'flake8-report.txt'), 'utf8');
-                reports.push(`## 🔍 Flake8 Linting Results\n\`\`\`\n${flake8}\n\`\`\``);
-              }
-              
-              // Adicionar outros relatórios conforme necessário
-              
-              if (reports.length > 0) {
-                const body = `# Code Quality Analysis Results\n\n${reports.join('\n\n')}`;
-                
-                github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: body
-                });
-              }
-            } catch (error) {
-              console.log('Error reading reports:', error);
-            }
-
-  # JOB 3: Execução de testes com estratégia de matriz
-  test-suite:
-    name: Test Suite (Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
-    needs: [detect-changes, code-quality]
-    if: |
-      needs.detect-changes.outputs.backend-changed == 'true' && 
-      github.event.inputs.skip_tests != 'true'
-    
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ['3.11', '3.12']
-        test-type: [unit, integration, e2e]
-        exclude:
-          # Reduzir matriz para PRs
-          - os: windows-latest
-            test-type: e2e
-          # Apenas Python 3.12 para testes E2E
-          - python-version: '3.11'
-            test-type: e2e
-        include:
-          # Configurações específicas por tipo de teste
-          - test-type: unit
-            pytest-args: "tests/unit --maxfail=10"
-            coverage-threshold: 85
-          - test-type: integration
-            pytest-args: "tests/integration --maxfail=3"
-            coverage-threshold: 70
-          - test-type: e2e
-            pytest-args: "tests/e2e --maxfail=1"
-            coverage-threshold: 60
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python environment
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: ${{ matrix.python-version }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-          requirements-file: 'backend/requirements/test.txt'
-
-      - name: Setup test environment
-        run: |
-          cd backend
-          
-          # Configurar variáveis de ambiente para testes
-          cat > .env.test << EOF
-          DATABASE_URL=postgresql://testuser:testpass@localhost:5432/testdb
-          REDIS_URL=redis://localhost:6379/0
-          SECRET_KEY=test-secret-key-not-for-production
-          ENVIRONMENT=test
-          DEBUG=true
-          LOG_LEVEL=INFO
-          EOF
-          
-          echo "🔧 Test environment configured"
-
-      - name: Run database migrations
-        if: matrix.test-type != 'unit'
-        run: |
-          cd backend
-          
-          # Executar migrações para testes de integração
-          poetry run alembic upgrade head
-          
-          echo "📊 Database migrations applied"
-
-      - name: Run ${{ matrix.test-type }} tests
-        run: |
-          cd backend
-          
-          echo "🧪 Running ${{ matrix.test-type }} tests..."
-          
-          # Executar testes com cobertura
-          poetry run pytest \
-            ${{ matrix.pytest-args }} \
-            --cov=src \
-            --cov-report=xml:coverage-${{ matrix.test-type }}.xml \
-            --cov-report=html:htmlcov-${{ matrix.test-type }} \
-            --cov-report=term-missing \
-            --cov-fail-under=${{ matrix.coverage-threshold }} \
-            --junitxml=test-results-${{ matrix.test-type }}.xml \
-            --tb=short \
-            --strict-markers \
-            --disable-warnings
-          
-          echo "✅ ${{ matrix.test-type }} tests completed"
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-results-${{ matrix.test-type }}-${{ matrix.python-version }}-${{ matrix.os }}
-          path: |
-            backend/coverage-*.xml
-            backend/htmlcov-*/
-            backend/test-results-*.xml
-          retention-days: 30
-
-      - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v3
-        with:
-          file: backend/coverage-${{ matrix.test-type }}.xml
-          flags: ${{ matrix.test-type }}
-          name: codecov-${{ matrix.test-type }}
-          fail_ci_if_error: false
-
-  # JOB 4: Análise de performance
-  performance-tests:
-    name: Performance Testing
-    runs-on: ubuntu-latest
-    needs: [detect-changes, test-suite]
-    if: |
-      needs.detect-changes.outputs.backend-changed == 'true' && 
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python environment
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          requirements-file: 'backend/requirements/test.txt'
-
-      - name: Run performance tests
-        run: |
-          cd backend
-          
-          echo "⚡ Running performance tests..."
-          
-          # Configurar ambiente de performance
-          export DATABASE_URL=postgresql://testuser:testpass@localhost:5432/testdb
-          export ENVIRONMENT=performance
-          
-          # Load testing com locust
-          poetry run locust \
-            --headless \
-            --users 100 \
-            --spawn-rate 10 \
-            --run-time 300s \
-            --host http://localhost:8000 \
-            --html performance-report.html \
-            --csv performance-results
-          
-          echo "📊 Performance tests completed"
-
-      - name: Analyze performance results
-        run: |
-          cd backend
-          
-          # Analisar resultados e definir thresholds
-          python scripts/analyze_performance.py \
-            --results-file performance-results_stats.csv \
-            --threshold-p95 200 \
-            --threshold-error-rate 1.0 \
-            --output performance-analysis.json
-
-      - name: Upload performance reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: performance-reports
-          path: |
-            backend/performance-report.html
-            backend/performance-results*.csv
-            backend/performance-analysis.json
-          retention-days: 90
-
-  # JOB 5: Build e push de imagem Docker
-  build-image:
-    name: Build & Push Docker Image
-    runs-on: ubuntu-latest
-    needs: [detect-changes, code-quality, test-suite]
-    if: |
-      needs.detect-changes.outputs.backend-changed == 'true' &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/release/'))
-    
-    outputs:
-      image-digest: ${{ steps.build.outputs.digest }}
-      image-tag: ${{ steps.meta.outputs.tags }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: backend
-          file: backend/docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
-            POETRY_VERSION=${{ env.POETRY_VERSION }}
-            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-            VCS_REF=${{ github.sha }}
-
-      - name: Generate SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-          format: spdx-json
-          output-file: sbom.spdx.json
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v3
-        with:
-          name: sbom
-          path: sbom.spdx.json
-          retention-days: 90
-
-  # JOB 6: Análise de vulnerabilidades de container
-  container-security:
-    name: Container Security Scan
-    runs-on: ubuntu-latest
-    needs: build-image
-    if: github.event.inputs.run_security_scan != 'false'
-
-    steps:
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-image.outputs.image-digest }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-      - name: Run Grype vulnerability scanner
-        uses: anchore/scan-action@v3
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-image.outputs.image-digest }}
-          fail-build: true
-          severity-cutoff: high
-
-  # JOB 7: Deploy para staging
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [build-image, container-security]
-    if: |
-      github.ref == 'refs/heads/develop' || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.deployment_target == 'staging')
-    environment:
-      name: staging
-      url: https://api-staging.taskmanagement.com
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.28.0'
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name staging-cluster
-
-      - name: Deploy application
-        run: |
-          # Atualizar manifests Kubernetes com nova imagem
-          cd infrastructure/kubernetes
-          
-          # Usar kustomize para atualizar imagem
-          kustomize edit set image backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-image.outputs.image-digest }}
-          
-          # Aplicar manifests
-          kubectl apply -k overlays/staging/
-          
-          # Aguardar rollout
-          kubectl rollout status deployment/backend -n staging --timeout=600s
-
-      - name: Run smoke tests
-        run: |
-          # Executar testes de smoke para validar deploy
-          cd backend
-          
-          export API_BASE_URL=https://api-staging.taskmanagement.com
-          poetry run pytest tests/smoke/ -v
-
-      - name: Notify deployment success
-        uses: ./.github/actions/notify-deployment
-        with:
-          environment: staging
-          status: success
-          image-tag: ${{ needs.build-image.outputs.image-tag }}
-          slack-webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  # JOB 8: Deploy para produção (apenas main branch)
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [build-image, container-security]
-    if: |
-      github.ref == 'refs/heads/main' || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.deployment_target == 'production')
-    environment:
-      name: production
-      url: https://api.taskmanagement.com
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Manual approval checkpoint
-        uses: trstringer/manual-approval@v1
-        if: github.event_name != 'workflow_dispatch'
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: devops-team,tech-leads
-          minimum-approvals: 2
-          issue-title: "Production deployment approval required"
-          issue-body: |
-            ## Production Deployment Approval
-            
-            **Branch:** `${{ github.ref }}`
-            **Commit:** `${{ github.sha }}`
-            **Image:** `${{ needs.build-image.outputs.image-tag }}`
-            
-            Please review and approve this production deployment.
-
-      - name: Blue-Green deployment
-        run: |
-          cd infrastructure/kubernetes
-          
-          # Implementar estratégia blue-green
-          ./scripts/blue-green-deploy.sh \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-image.outputs.image-digest }} \
-            --environment production \
-            --health-check-url https://api.taskmanagement.com/health
-
-      - name: Run production health checks
-        run: |
-          cd backend
-          
-          # Executar health checks completos
-          export API_BASE_URL=https://api.taskmanagement.com
-          poetry run pytest tests/health/ -v --tb=short
-
-      - name: Notify deployment success
-        uses: ./.github/actions/notify-deployment
-        with:
-          environment: production
-          status: success
-          image-tag: ${{ needs.build-image.outputs.image-tag }}
-          slack-webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  # JOB 9: Post-deployment monitoring
-  post-deployment:
-    name: Post-Deployment Monitoring
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
-
-    steps:
-      - name: Setup monitoring alerts
-        run: |
-          # Configurar alertas específicos para o deploy
-          echo "Setting up deployment-specific monitoring..."
-          
-          # Alertas temporários por 1 hora após deploy
-          curl -X POST "${{ secrets.PROMETHEUS_ALERTMANAGER_URL }}/api/v1/silences" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "matchers": [
-                {"name": "job", "value": "backend", "isRegex": false}
-              ],
-              "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'",
-              "endsAt": "'$(date -u -d "+1 hour" +%Y-%m-%dT%H:%M:%S.000Z)'",
-              "createdBy": "github-actions",
-              "comment": "Temporary silence after deployment"
-            }'
-
-      - name: Update deployment tracking
-        run: |
-          # Registrar deploy no sistema de tracking
-          curl -X POST "${{ secrets.DEPLOYMENT_TRACKER_URL }}/deployments" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.DEPLOYMENT_TRACKER_TOKEN }}" \
-            -d '{
-              "application": "backend",
-              "version": "${{ github.sha }}",
-              "environment": "${{ needs.deploy-production.result == 'success' && 'production' || 'staging' }}",
-              "deployed_at": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'",
-              "deployed_by": "${{ github.actor }}",
-              "commit_url": "${{ github.event.head_commit.url }}",
-              "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }'
-```
-
-**Workflow de Segurança e Compliance:**
-
-```yaml
-# .github/workflows/security-compliance.yml
-name: Security & Compliance Scan
-
-on:
-  schedule:
-    # Executa diariamente às 2h da manhã
-    - cron: '0 2 * * *'
-  push:
-    branches: [main]
-    paths: ['backend/**', 'frontend/**', 'infrastructure/**']
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize]
-  workflow_dispatch:
-    inputs:
-      scan_scope:
-        description: 'Scope of security scan'
-        required: false
-        default: 'full'
-        type: choice
-        options:
-          - full
-          - code-only
-          - dependencies-only
-          - infrastructure-only
-
-env:
-  SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-
-jobs:
-  # JOB 1: SAST (Static Application Security Testing)
-  sast-analysis:
-    name: SAST - Static Code Analysis
-    runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        scanner: [semgrep, codeql, sonarqube]
-        include:
-          - scanner: semgrep
-            config: "auto"
-          - scanner: codeql
-            language: "python"
-          - scanner: sonarqube
-            project-key: "task-management-system"
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Necessário para análise completa
-
-      - name: Run Semgrep SAST
-        if: matrix.scanner == 'semgrep'
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/owasp-top-ten
-            p/python
-            p/typescript
-            p/react
-            p/docker
-            p/kubernetes
-          generateSarif: "1"
-
-      - name: Initialize CodeQL
-        if: matrix.scanner == 'codeql'
-        uses: github/codeql-action/init@v2
-        with:
-          languages: python,typescript
-          queries: +security-and-quality
-
-      - name: Autobuild CodeQL
-        if: matrix.scanner == 'codeql'
-        uses: github/codeql-action/autobuild@v2
-
-      - name: Perform CodeQL Analysis
-        if: matrix.scanner == 'codeql'
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "/language:${{ matrix.language }}"
-
-      - name: SonarQube Scan
-        if: matrix.scanner == 'sonarqube'
-        uses: sonarqube-quality-gate-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          scanMetadataReportFile: target/sonar/report-task.txt
-
-      - name: Upload SARIF results
-        if: always()
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: semgrep.sarif
-          category: ${{ matrix.scanner }}
-
-  # JOB 2: Dependency Vulnerability Scanning
-  dependency-scan:
-    name: Dependency Vulnerability Scan
-    runs-on: ubuntu-latest
-    if: |
-      github.event.inputs.scan_scope == 'full' || 
-      github.event.inputs.scan_scope == 'dependencies-only' ||
-      github.event.inputs.scan_scope == ''
-
-    strategy:
-      matrix:
-        component: [backend, frontend]
-        include:
-          - component: backend
-            package-manager: pip
-            manifest: backend/requirements/prod.txt
-            lockfile: backend/requirements.lock
-          - component: frontend
-            package-manager: npm
-            manifest: frontend/package.json
-            lockfile: frontend/package-lock.json
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js (for frontend)
-        if: matrix.component == 'frontend'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Setup Python (for backend)
-        if: matrix.component == 'backend'
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          if [ "${{ matrix.component }}" = "backend" ]; then
-            cd backend
-            pip install -r requirements/prod.txt
-            pip install safety pip-audit
-          else
-            cd frontend
-            npm ci
-          fi
-
-      - name: Run Safety (Python dependencies)
-        if: matrix.component == 'backend'
-        run: |
-          cd backend
-          echo "🔒 Running Safety scan for Python dependencies..."
-          
-          # Safety scan
-          safety check \
-            --json \
-            --output safety-report.json \
-            --continue-on-error
-          
-          # pip-audit scan
-          pip-audit \
-            --format=json \
-            --output=pip-audit-report.json \
-            --require requirements/prod.txt
-
-      - name: Run npm audit (Node.js dependencies)
-        if: matrix.component == 'frontend'
-        run: |
-          cd frontend
-          echo "🔒 Running npm audit for Node.js dependencies..."
-          
-          # npm audit
-          npm audit --json > npm-audit-report.json || true
-          
-          # Audit with fix suggestions
-          npm audit --audit-level=moderate
-
-      - name: Run Snyk vulnerability scan
-        uses: snyk/actions/node@master
-        if: matrix.component == 'frontend'
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --json-file-output=snyk-report.json
-          command: test
-
-      - name: Generate dependency report
-        run: |
-          # Gerar relatório consolidado de dependências
-          python .github/scripts/generate-dependency-report.py \
-            --component ${{ matrix.component }} \
-            --output-file dependency-report-${{ matrix.component }}.json
-
-      - name: Upload vulnerability reports
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: vulnerability-reports-${{ matrix.component }}
-          path: |
-            ${{ matrix.component }}/*-report.json
-            dependency-report-${{ matrix.component }}.json
-          retention-days: 30
-
-  # JOB 3: Infrastructure Security Scanning
-  infrastructure-scan:
-    name: Infrastructure Security Scan
-    runs-on: ubuntu-latest
-    if: |
-      github.event.inputs.scan_scope == 'full' || 
-      github.event.inputs.scan_scope == 'infrastructure-only' ||
-      github.event.inputs.scan_scope == ''
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run Checkov (Terraform/Kubernetes)
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: infrastructure/
-          framework: terraform,kubernetes,dockerfile
-          output_format: sarif
-          output_file_path: checkov-report.sarif
-          soft_fail: true
-
-      - name: Run kube-score (Kubernetes manifests)
-        run: |
-          # Instalar kube-score
-          wget https://github.com/zegl/kube-score/releases/latest/download/kube-score_linux_amd64.tar.gz
-          tar xzf kube-score_linux_amd64.tar.gz
-          sudo mv kube-score /usr/local/bin/
-          
-          # Analisar manifests Kubernetes
-          find infrastructure/kubernetes -name "*.yaml" -o -name "*.yml" | \
-            xargs kube-score score --output-format json > kube-score-report.json
-
-      - name: Run Terrascan (Infrastructure as Code)
-        uses: accurics/terrascan-action@main
-        with:
-          iac_type: 'terraform'
-          iac_version: 'v14'
-          policy_type: 'aws'
-          only_warn: true
-          sarif_upload: true
-
-      - name: Upload infrastructure scan results
-        uses: actions/upload-artifact@v3
-        with:
-          name: infrastructure-security-reports
-          path: |
-            checkov-report.sarif
-            kube-score-report.json
-            terrascan-results.xml
-          retention-days: 30
-
-  # JOB 4: Container Image Security
-  container-security:
-    name: Container Security Analysis
-    runs-on: ubuntu-latest
-    needs: [sast-analysis]
-
-    strategy:
-      matrix:
-        image: [backend, frontend, nginx]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build test image
-        run: |
-          # Build imagem para análise
-          docker build -t test-image:latest ${{ matrix.image }}/
-
-      - name: Run Trivy container scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'test-image:latest'
-          format: 'json'
-          output: 'trivy-${{ matrix.image }}-report.json'
-
-      - name: Run Grype vulnerability scanner
-        uses: anchore/scan-action@v3
-        with:
-          image: 'test-image:latest'
-          output-format: json
-          output-file: grype-${{ matrix.image }}-report.json
-
-      - name: Run Syft SBOM generation
-        uses: anchore/sbom-action@v0
-        with:
-          image: 'test-image:latest'
-          output-file: sbom-${{ matrix.image }}.spdx.json
-
-      - name: Docker Bench Security
-        run: |
-          # Executar Docker Bench Security
-          docker run --rm --net host --pid host --userns host --cap-add audit_control \
-            -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
-            -v /etc:/etc:ro \
-            -v /usr/bin/containerd:/usr/bin/containerd:ro \
-            -v /usr/bin/runc:/usr/bin/runc:ro \
-            -v /usr/lib/systemd:/usr/lib/systemd:ro \
-            -v /var/lib:/var/lib:ro \
-            -v /var/run/docker.sock:/var/run/docker.sock:ro \
-            --label docker_bench_security \
-            docker/docker-bench-security:latest \
-            > docker-bench-${{ matrix.image }}-report.txt
-
-      - name: Upload container security reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: container-security-${{ matrix.image }}
-          path: |
-            trivy-${{ matrix.image }}-report.json
-            grype-${{ matrix.image }}-report.json
-            sbom-${{ matrix.image }}.spdx.json
-            docker-bench-${{ matrix.image }}-report.txt
-          retention-days: 30
-
-  # JOB 5: Compliance and License Scanning
-  compliance-scan:
-    name: Compliance & License Analysis
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: FOSSA License Scan
-        uses: fossas/fossa-action@main
-        with:
-          api-key: ${{ secrets.FOSSA_API_KEY }}
-          project: task-management-system
-
-      - name: License compatibility check
-        run: |
-          # Verificar compatibilidade de licenças
-          pip install pip-licenses licensecheck
-          
-          cd backend
-          pip-licenses --format=json --output-file=../licenses-backend.json
-          
-          cd ../frontend
-          npx license-checker --json --out ../licenses-frontend.json
-          
-          # Análise de compatibilidade
-          python ../.github/scripts/check-license-compatibility.py \
-            --backend-licenses ../licenses-backend.json \
-            --frontend-licenses ../licenses-frontend.json \
-            --output ../license-compatibility-report.json
-
-      - name: Generate compliance report
-        run: |
-          # Gerar relatório de compliance consolidado
-          python .github/scripts/generate-compliance-report.py \
-            --license-report license-compatibility-report.json \
-            --security-reports vulnerability-reports-*/ \
-            --output compliance-report.json
-
-      - name: Upload compliance reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: compliance-reports
-          path: |
-            licenses-*.json
-            license-compatibility-report.json
-            compliance-report.json
-          retention-days: 90
-
-  # JOB 6: Security Report Consolidation
-  security-report:
-    name: Consolidate Security Reports
-    runs-on: ubuntu-latest
-    needs: [sast-analysis, dependency-scan, infrastructure-scan, container-security, compliance-scan]
-    if: always()
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: security-reports
-
-      - name: Generate security dashboard
-        run: |
-          # Gerar dashboard consolidado de segurança
-          python .github/scripts/generate-security-dashboard.py \
-            --reports-dir security-reports \
-            --output security-dashboard.html \
-            --json-output security-summary.json
-
-      - name: Security score calculation
-        id: security-score
-        run: |
-          # Calcular score de segurança
-          SCORE=$(python .github/scripts/calculate-security-score.py \
-            --summary-file security-summary.json)
-          
-          echo "security-score=$SCORE" >> $GITHUB_OUTPUT
-          echo "Security Score: $SCORE"
-
-      - name: Comment PR with security results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            
-            try {
-              const summary = JSON.parse(fs.readFileSync('security-summary.json', 'utf8'));
-              const score = '${{ steps.security-score.outputs.security-score }}';
-              
-              const body = `
-              # 🔒 Security Analysis Results
-              
-              **Security Score: ${score}/100**
-              
-              ## Summary
-              - **Critical Vulnerabilities:** ${summary.critical || 0}
-              - **High Severity:** ${summary.high || 0}
-              - **Medium Severity:** ${summary.medium || 0}
-              - **Low Severity:** ${summary.low || 0}
-              
-              ## Component Analysis
-              ${Object.entries(summary.components || {})
-                .map(([component, data]) => 
-                  `- **${component}:** ${data.vulnerabilities} vulnerabilities found`
-                ).join('\n')}
-              
-              ## Recommendations
-              ${(summary.recommendations || []).map(rec => `- ${rec}`).join('\n')}
-              
-              [View detailed security dashboard](./security-dashboard.html)
-              `;
-              
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: body
-              });
-            } catch (error) {
-              console.log('Error generating security comment:', error);
-            }
-
-      - name: Upload security dashboard
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-dashboard
-          path: |
-            security-dashboard.html
-            security-summary.json
-          retention-days: 90
-
-      - name: Fail on critical vulnerabilities
-        if: steps.security-score.outputs.security-score < 70
-        run: |
-          echo "❌ Security score below threshold (70). Current score: ${{ steps.security-score.outputs.security-score }}"
-          echo "Please address critical and high severity vulnerabilities before merging."
-          exit 1
-
-  # JOB 7: Create Security Issues
-  create-security-issues:
-    name: Create Security Issues
-    runs-on: ubuntu-latest
-    needs: security-report
-    if: |
-      always() && 
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') &&
-      needs.security-report.outputs.security-score < 80
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download security summary
-        uses: actions/download-artifact@v3
-        with:
-          name: security-dashboard
-          path: .
-
-      - name: Create security issues
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            
-            try {
-              const summary = JSON.parse(fs.readFileSync('security-summary.json', 'utf8'));
-              
-              // Criar issues para vulnerabilidades críticas
-              if (summary.critical > 0) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: `🚨 CRITICAL: ${summary.critical} critical security vulnerabilities found`,
-                  body: `
-                  # Critical Security Vulnerabilities Detected
-                  
-                  **Scan Date:** ${new Date().toISOString()}
-                  **Branch:** ${context.ref}
-                  **Commit:** ${context.sha}
-                  
-                  ## Summary
-                  ${summary.critical} critical vulnerabilities require immediate attention.
-                  
-                  ## Components Affected
-                  ${Object.entries(summary.critical_by_component || {})
-                    .map(([component, count]) => `- ${component}: ${count} critical vulnerabilities`)
-                    .join('\n')}
-                  
-                  ## Next Steps
-                  1. Review detailed security report
-                  2. Prioritize fixes based on exploitability
-                  3. Update dependencies or apply patches
-                  4. Re-run security scan to verify fixes
-                  
-                  **This issue will be automatically closed when all critical vulnerabilities are resolved.**
-                  `,
-                  labels: ['security', 'critical', 'vulnerability'],
-                  assignees: ['security-team']
-                });
-              }
-              
-              // Criar issues para vulnerabilidades high se muitas
-              if (summary.high > 10) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: `⚠️ HIGH: ${summary.high} high-severity vulnerabilities found`,
-                  body: `
-                  # High-Severity Security Vulnerabilities
-                  
-                  ${summary.high} high-severity vulnerabilities detected across components.
-                  While not immediately critical, these should be addressed promptly.
-                  
-                  See security dashboard for detailed analysis and remediation steps.
-                  `,
-                  labels: ['security', 'high-priority', 'vulnerability']
-                });
-              }
-            } catch (error) {
-              console.log('Error creating security issues:', error);
-            }
-```
-
-#### 3.1.7. Análise de Resultados e Métricas de CI/CD
-
-**Dashboard de Métricas de Pipeline:**
-
-```python
-# scripts/pipeline-analytics.py
-"""
-Script para análise de métricas de pipeline CI/CD.
-
-CONCEITO: Data-Driven DevOps
-Utiliza dados históricos de pipeline para identificar gargalos,
-otimizar performance e melhorar a confiabilidade do processo.
-"""
-
-import asyncio
-import json
-import logging
-import statistics
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-from pathlib import Path
-
-import aiohttp
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-@dataclass
-class PipelineRun:
-    """Representa uma execução de pipeline."""
-    id: str
-    workflow_name: str
-    branch: str
-    status: str  # success, failure, cancelled
-    started_at: datetime
-    completed_at: Optional[datetime]
-    duration_seconds: Optional[int]
-    jobs: List[Dict]
-    trigger_event: str  # push, pull_request, schedule, manual
-    commit_sha: str
-    author: str
-
-@dataclass
-class JobMetrics:
-    """Métricas de um job específico."""
-    name: str
-    duration_seconds: int
-    status: str
-    step_count: int
-    retry_count: int
-    runner_type: str
-
-@dataclass
-class PipelineMetrics:
-    """Métricas consolidadas do pipeline."""
-    # Métricas de tempo
-    average_duration: float
-    median_duration: float
-    p95_duration: float
-    fastest_run: float
-    slowest_run: float
-    
-    # Métricas de qualidade
-    success_rate: float
-    failure_rate: float
-    cancellation_rate: float
-    
-    # Métricas de frequência
-    runs_per_day: float
-    peak_hours: List[int]
-    
-    # Métricas de custo
-    total_compute_minutes: int
-    estimated_cost: float
-    
-    # Tendências
-    duration_trend: str  # improving, degrading, stable
-    success_rate_trend: str
-
-class GitHubAPIClient:
-    """Cliente para API do GitHub."""
-    
-    def __init__(self, token: str, repo: str):
-        self.token = token
-        self.repo = repo
-        self.base_url = "https://api.github.com"
-        self.headers = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-    
-    async def get_workflow_runs(
-        self, 
-        workflow_id: str, 
-        days_back: int = 30
-    ) -> List[Dict]:
-        """Busca execuções de workflow dos últimos X dias."""
-        since = (datetime.now() - timedelta(days=days_back)).isoformat()
-        
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}/repos/{self.repo}/actions/workflows/{workflow_id}/runs"
-            params = {
-                "per_page": 100,
-                "created": f">={since}"
-            }
-            
-            all_runs = []
-            page = 1
-            
-            while True:
-                params["page"] = page
-                
-                async with session.get(url, headers=self.headers, params=params) as response:
-                    if response.status != 200:
-                        logger.error(f"API error: {response.status}")
-                        break
-                    
-                    data = await response.json()
-                    runs = data.get("workflow_runs", [])
-                    
-                    if not runs:
-                        break
-                    
-                    all_runs.extend(runs)
-                    
-                    if len(runs) < 100:  # Última página
-                        break
-                    
-                    page += 1
-            
-            return all_runs
-    
-    async def get_workflow_run_jobs(self, run_id: str) -> List[Dict]:
-        """Busca jobs de uma execução específica."""
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}/repos/{self.repo}/actions/runs/{run_id}/jobs"
-            
-            async with session.get(url, headers=self.headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return data.get("jobs", [])
-                return []
-
-class PipelineAnalyzer:
-    """Analisador de métricas de pipeline."""
-    
-    def __init__(self, github_client: GitHubAPIClient):
-        self.github = github_client
-        
-    async def collect_pipeline_data(
-        self, 
-        workflow_name: str, 
-        days_back: int = 30
-    ) -> List[PipelineRun]:
-        """Coleta dados históricos do pipeline."""
-        logger.info(f"Coletando dados do pipeline {workflow_name} dos últimos {days_back} dias...")
-        
-        # Buscar execuções do workflow
-        runs_data = await self.github.get_workflow_runs(workflow_name, days_back)
-        
-        pipeline_runs = []
-        
-        for run_data in runs_data:
-            # Buscar jobs da execução
-            jobs_data = await self.github.get_workflow_run_jobs(run_data["id"])
-            
-            # Calcular duração
-            started_at = datetime.fromisoformat(run_data["created_at"].replace("Z", "+00:00"))
-            completed_at = None
-            duration_seconds = None
-            
-            if run_data["updated_at"]:
-                completed_at = datetime.fromisoformat(run_data["updated_at"].replace("Z", "+00:00"))
-                duration_seconds = int((completed_at - started_at).total_seconds())
-            
-            pipeline_run = PipelineRun(
-                id=str(run_data["id"]),
-                workflow_name=run_data["name"],
-                branch=run_data["head_branch"],
-                status=run_data["conclusion"] or run_data["status"],
-                started_at=started_at,
-                completed_at=completed_at,
-                duration_seconds=duration_seconds,
-                jobs=jobs_data,
-                trigger_event=run_data["event"],
-                commit_sha=run_data["head_sha"],
-                author=run_data["head_commit"]["author"]["name"] if run_data.get("head_commit") else "unknown"
-            )
-            
-            pipeline_runs.append(pipeline_run)
-        
-        logger.info(f"Coletadas {len(pipeline_runs)} execuções do pipeline")
-        return pipeline_runs
-    
-    def calculate_metrics(self, pipeline_runs: List[PipelineRun]) -> PipelineMetrics:
-        """Calcula métricas do pipeline."""
-        if not pipeline_runs:
-            raise ValueError("Nenhuma execução de pipeline encontrada")
-        
-        # Filtrar apenas execuções completas
-        completed_runs = [run for run in pipeline_runs if run.duration_seconds is not None]
-        
-        if not completed_runs:
-            raise ValueError("Nenhuma execução completa encontrada")
-        
-        # Métricas de tempo
-        durations = [run.duration_seconds for run in completed_runs]
-        
-        # Métricas de qualidade
-        total_runs = len(pipeline_runs)
-        successful_runs = len([run for run in pipeline_runs if run.status == "success"])
-        failed_runs = len([run for run in pipeline_runs if run.status == "failure"])
-        cancelled_runs = len([run for run in pipeline_runs if run.status == "cancelled"])
-        
-        # Métricas de frequência
-        if completed_runs:
-            date_range = (max(run.started_at for run in completed_runs) - 
-                         min(run.started_at for run in completed_runs)).days
-            runs_per_day = len(completed_runs) / max(date_range, 1)
-            
-            # Horas de pico
-            hours = [run.started_at.hour for run in completed_runs]
-            hour_counts = {}
-            for hour in hours:
-                hour_counts[hour] = hour_counts.get(hour, 0) + 1
-            
-            peak_hours = sorted(hour_counts.keys(), key=lambda h: hour_counts[h], reverse=True)[:3]
-        else:
-            runs_per_day = 0
-            peak_hours = []
-        
-        # Métricas de custo (estimativa)
-        total_compute_minutes = sum(
-            (run.duration_seconds or 0) // 60 for run in completed_runs
-        )
-        
-        # Estimativa de custo (GitHub Actions pricing)
-        estimated_cost = total_compute_minutes * 0.008  # $0.008 per minute
-        
-        # Análise de tendências
-        if len(completed_runs) >= 10:
-            recent_runs = sorted(completed_runs, key=lambda r: r.started_at)[-10:]
-            older_runs = sorted(completed_runs, key=lambda r: r.started_at)[:-10]
-            
-            if older_runs:
-                recent_avg = statistics.mean(run.duration_seconds for run in recent_runs)
-                older_avg = statistics.mean(run.duration_seconds for run in older_runs)
-                
-                duration_improvement = (older_avg - recent_avg) / older_avg
-                
-                if duration_improvement > 0.1:
-                    duration_trend = "improving"
-                elif duration_improvement < -0.1:
-                    duration_trend = "degrading"
-                else:
-                    duration_trend = "stable"
-            else:
-                duration_trend = "insufficient_data"
-        else:
-            duration_trend = "insufficient_data"
-        
-        # Tendência de taxa de sucesso
-        if len(pipeline_runs) >= 20:
-            recent_success_rate = len([r for r in pipeline_runs[-10:] if r.status == "success"]) / 10
-            older_success_rate = len([r for r in pipeline_runs[-20:-10] if r.status == "success"]) / 10
-            
-            success_improvement = recent_success_rate - older_success_rate
-            
-            if success_improvement > 0.1:
-                success_rate_trend = "improving"
-            elif success_improvement < -0.1:
-                success_rate_trend = "degrading"
-            else:
-                success_rate_trend = "stable"
-        else:
-            success_rate_trend = "insufficient_data"
-        
-        return PipelineMetrics(
-            average_duration=statistics.mean(durations),
-            median_duration=statistics.median(durations),
-            p95_duration=sorted(durations)[int(0.95 * len(durations))],
-            fastest_run=min(durations),
-            slowest_run=max(durations),
-            success_rate=successful_runs / total_runs,
-            failure_rate=failed_runs / total_runs,
-            cancellation_rate=cancelled_runs / total_runs,
-            runs_per_day=runs_per_day,
-            peak_hours=peak_hours,
-            total_compute_minutes=total_compute_minutes,
-            estimated_cost=estimated_cost,
-            duration_trend=duration_trend,
-            success_rate_trend=success_rate_trend
-        )
-    
-    def analyze_job_performance(self, pipeline_runs: List[PipelineRun]) -> Dict[str, JobMetrics]:
-        """Analisa performance individual dos jobs."""
-        job_stats = {}
-        
-        for run in pipeline_runs:
-            for job in run.jobs:
-                job_name = job["name"]
-                
-                if job_name not in job_stats:
-                    job_stats[job_name] = {
-                        "durations": [],
-                        "statuses": [],
-                        "step_counts": [],
-                        "retry_counts": [],
-                        "runner_types": []
-                    }
-                
-                # Calcular duração do job
-                if job["started_at"] and job["completed_at"]:
-                    started = datetime.fromisoformat(job["started_at"].replace("Z", "+00:00"))
-                    completed = datetime.fromisoformat(job["completed_at"].replace("Z", "+00:00"))
-                    duration = int((completed - started).total_seconds())
-                    job_stats[job_name]["durations"].append(duration)
-                
-                job_stats[job_name]["statuses"].append(job["conclusion"] or job["status"])
-                job_stats[job_name]["step_counts"].append(len(job.get("steps", [])))
-                job_stats[job_name]["retry_counts"].append(job.get("run_attempt", 1) - 1)
-                job_stats[job_name]["runner_types"].append(job.get("runner_name", "unknown"))
-        
-        # Calcular métricas por job
-        job_metrics = {}
-        
-        for job_name, stats in job_stats.items():
-            if stats["durations"]:
-                job_metrics[job_name] = JobMetrics(
-                    name=job_name,
-                    duration_seconds=int(statistics.mean(stats["durations"])),
-                    status=max(set(stats["statuses"]), key=stats["statuses"].count),
-                    step_count=int(statistics.mean(stats["step_counts"])),
-                    retry_count=int(statistics.mean(stats["retry_counts"])),
-                    runner_type=max(set(stats["runner_types"]), key=stats["runner_types"].count)
-                )
-        
-        return job_metrics
-    
-    def identify_bottlenecks(
-        self, 
-        pipeline_runs: List[PipelineRun], 
-        job_metrics: Dict[str, JobMetrics]
-    ) -> List[Dict]:
-        """Identifica gargalos no pipeline."""
-        bottlenecks = []
-        
-        # Ordenar jobs por duração média
-        sorted_jobs = sorted(job_metrics.values(), key=lambda j: j.duration_seconds, reverse=True)
-        
-        # Jobs mais lentos (top 3)
-        for job in sorted_jobs[:3]:
-            bottlenecks.append({
-                "type": "slow_job",
-                "job_name": job.name,
-                "average_duration": job.duration_seconds,
-                "recommendation": f"Otimizar job '{job.name}' - duração média de {job.duration_seconds//60}min"
-            })
-        
-        # Jobs com alta taxa de falha
-        for job_name, job in job_metrics.items():
-            if job.status in ["failure", "cancelled"] and job.retry_count > 1:
-                bottlenecks.append({
-                    "type": "unreliable_job",
-                    "job_name": job_name,
-                    "retry_count": job.retry_count,
-                    "recommendation": f"Investigar instabilidade do job '{job_name}' - {job.retry_count} tentativas em média"
-                })
-        
-        # Análise de paralelização
-        job_dependencies = self._analyze_job_dependencies(pipeline_runs)
-        for dependency in job_dependencies:
-            if dependency["blocking_time"] > 300:  # 5 minutos
-                bottlenecks.append({
-                    "type": "serialization_bottleneck",
-                    "dependency": dependency,
-                    "recommendation": f"Considerar paralelizar jobs dependentes de '{dependency['job']}'"
-                })
-        
-        return bottlenecks
-    
-    def _analyze_job_dependencies(self, pipeline_runs: List[PipelineRun]) -> List[Dict]:
-        """Analisa dependências entre jobs."""
-        dependencies = []
-        
-        # Análise simplificada - identificar jobs que sempre executam em sequência
-        job_sequences = {}
-        
-        for run in pipeline_runs[:10]:  # Analisar últimas 10 execuções
-            job_times = {}
-            for job in run.jobs:
-                if job["started_at"]:
-                    job_times[job["name"]] = datetime.fromisoformat(
-                        job["started_at"].replace("Z", "+00:00")
-                    )
-            
-            # Ordenar jobs por tempo de início
-            sorted_jobs = sorted(job_times.items(), key=lambda x: x[1])
-            
-            for i in range(len(sorted_jobs) - 1):
-                current_job = sorted_jobs[i][0]
-                next_job = sorted_jobs[i + 1][0]
-                
-                dependency_key = f"{current_job}->{next_job}"
-                if dependency_key not in job_sequences:
-                    job_sequences[dependency_key] = []
-                
-                time_diff = (sorted_jobs[i + 1][1] - sorted_jobs[i][1]).total_seconds()
-                job_sequences[dependency_key].append(time_diff)
-        
-        # Identificar dependências consistentes
-        for dependency, time_diffs in job_sequences.items():
-            if len(time_diffs) >= 5:  # Aparece em pelo menos 5 execuções
-                avg_blocking_time = statistics.mean(time_diffs)
-                current_job, next_job = dependency.split("->")
-                
-                dependencies.append({
-                    "job": current_job,
-                    "dependent_job": next_job,
-                    "blocking_time": avg_blocking_time,
-                    "frequency": len(time_diffs)
-                })
-        
-        return dependencies
-
-class PipelineDashboard:
-    """Gerador de dashboard de métricas."""
-    
-    def __init__(self, analyzer: PipelineAnalyzer):
-        self.analyzer = analyzer
-    
-    def generate_dashboard(
-        self, 
-        pipeline_runs: List[PipelineRun],
-        metrics: PipelineMetrics,
-        job_metrics: Dict[str, JobMetrics],
-        bottlenecks: List[Dict],
-        output_file: str = "pipeline-dashboard.html"
-    ):
-        """Gera dashboard interativo com todas as métricas."""
-        
-        # Criar subplots
-        fig = make_subplots(
-            rows=3, cols=2,
-            subplot_titles=[
-                "Duração do Pipeline ao Longo do Tempo",
-                "Taxa de Sucesso por Dia",
-                "Distribuição de Duração por Job",
-                "Execuções por Hora do Dia",
-                "Tendência de Performance",
-                "Custo Estimado por Semana"
-            ],
-            specs=[
-                [{"secondary_y": False}, {"secondary_y": False}],
-                [{"secondary_y": False}, {"secondary_y": False}],
-                [{"secondary_y": False}, {"secondary_y": False}]
-            ]
-        )
-        
-        # Gráfico 1: Duração ao longo do tempo
-        completed_runs = [run for run in pipeline_runs if run.duration_seconds is not None]
-        completed_runs.sort(key=lambda r: r.started_at)
-        
-        dates = [run.started_at for run in completed_runs]
-        durations = [run.duration_seconds / 60 for run in completed_runs]  # em minutos
-        
-        fig.add_trace(
-            go.Scatter(
-                x=dates,
-                y=durations,
-                mode='lines+markers',
-                name='Duração (min)',
-                line=dict(color='blue')
-            ),
-            row=1, col=1
-        )
-        
-        # Gráfico 2: Taxa de sucesso por dia
-        df = pd.DataFrame([
-            {
-                'date': run.started_at.date(),
-                'status': run.status
-            }
-            for run in pipeline_runs
-        ])
-        
-        daily_stats = df.groupby('date').agg({
-            'status': ['count', lambda x: (x == 'success').sum()]
-        }).reset_index()
-        
-        daily_stats.columns = ['date', 'total', 'success']
-        daily_stats['success_rate'] = daily_stats['success'] / daily_stats['total'] * 100
-        
-        fig.add_trace(
-            go.Scatter(
-                x=daily_stats['date'],
-                y=daily_stats['success_rate'],
-                mode='lines+markers',
-                name='Taxa de Sucesso (%)',
-                line=dict(color='green')
-            ),
-            row=1, col=2
-        )
-        
-        # Gráfico 3: Duração por job
-        job_names = list(job_metrics.keys())
-        job_durations = [job.duration_seconds / 60 for job in job_metrics.values()]
-        
-        fig.add_trace(
-            go.Bar(
-                x=job_names,
-                y=job_durations,
-                name='Duração Média por Job (min)',
-                marker_color='orange'
-            ),
-            row=2, col=1
-        )
-        
-        # Gráfico 4: Execuções por hora
-        hours = [run.started_at.hour for run in pipeline_runs]
-        hour_counts = pd.Series(hours).value_counts().sort_index()
-        
-        fig.add_trace(
-            go.Bar(
-                x=hour_counts.index,
-                y=hour_counts.values,
-                name='Execuções por Hora',
-                marker_color='purple'
-            ),
-            row=2, col=2
-        )
-        
-        # Gráfico 5: Tendência de performance (média móvel)
-        if len(completed_runs) >= 7:
-            window_size = 7
-            moving_avg = pd.Series(durations).rolling(window=window_size).mean()
-            
-            fig.add_trace(
-                go.Scatter(
-                    x=dates,
-                    y=moving_avg,
-                    mode='lines',
-                    name=f'Média Móvel ({window_size} execuções)',
-                    line=dict(color='red', width=3)
-                ),
-                row=3, col=1
-            )
-        
-        # Gráfico 6: Custo estimado por semana
-        weekly_costs = []
-        current_week = None
-        week_cost = 0
-        
-        for run in completed_runs:
-            week = run.started_at.isocalendar()[1]
-            if current_week != week:
-                if current_week is not None:
-                    weekly_costs.append(week_cost)
-                current_week = week
-                week_cost = 0
-            
-            run_cost = (run.duration_seconds / 60) * 0.008
-            week_cost += run_cost
-        
-        if week_cost > 0:
-            weekly_costs.append(week_cost)
-        
-        fig.add_trace(
-            go.Bar(
-                x=list(range(1, len(weekly_costs) + 1)),
-                y=weekly_costs,
-                name='Custo Estimado por Semana ($)',
-                marker_color='lightblue'
-            ),
-            row=3, col=2
-        )
-        
-        # Atualizar layout
-        fig.update_layout(
-            title={
-                'text': f"Dashboard de Métricas - Pipeline CI/CD",
-                'x': 0.5,
-                'xanchor': 'center',
-                'font': {'size': 20}
-            },
-            height=1200,
-            showlegend=True
-        )
-        
-        # Adicionar informações de resumo
-        summary_text = f"""
-        <div style="padding: 20px; background-color: #f0f0f0; border-radius: 10px; margin: 20px;">
-            <h3>Resumo Executivo</h3>
-            <ul>
-                <li><strong>Duração Média:</strong> {metrics.average_duration/60:.1f} minutos</li>
-                <li><strong>Taxa de Sucesso:</strong> {metrics.success_rate*100:.1f}%</li>
-                <li><strong>Execuções por Dia:</strong> {metrics.runs_per_day:.1f}</li>
-                <li><strong>Custo Estimado Total:</strong> ${metrics.estimated_cost:.2f}</li>
-                <li><strong>Tendência de Duração:</strong> {metrics.duration_trend}</li>
-                <li><strong>Tendência de Sucesso:</strong> {metrics.success_rate_trend}</li>
-            </ul>
-            
-            <h4>Principais Gargalos Identificados:</h4>
-            <ul>
-        """
-        
-        for bottleneck in bottlenecks[:5]:  # Top 5 gargalos
-            summary_text += f"<li>{bottleneck['recommendation']}</li>"
-        
-        summary_text += """
-            </ul>
-        </div>
-        """
-        
-        # Salvar dashboard
-        html_content = fig.to_html(include_plotlyjs='cdn')
-        html_content = html_content.replace(
-            '<body>',
-            f'<body>{summary_text}'
-        )
-        
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        logger.info(f"Dashboard salvo em: {output_file}")
-
-async def main():
-    """Função principal para análise de pipeline."""
-    import os
-    
-    # Configuração
-    github_token = os.getenv("GITHUB_TOKEN")
-    repo = os.getenv("GITHUB_REPOSITORY", "owner/repo")
-    workflow_name = "ci-backend.yml"
-    
-    if not github_token:
-        logger.error("GITHUB_TOKEN não definido")
-        return
-    
-    # Inicializar clientes
-    github_client = GitHubAPIClient(github_token, repo)
-    analyzer = PipelineAnalyzer(github_client)
-    dashboard = PipelineDashboard(analyzer)
-    
-    try:
-        # Coletar dados
-        pipeline_runs = await analyzer.collect_pipeline_data(workflow_name, days_back=30)
-        
-        if not pipeline_runs:
-            logger.warning("Nenhuma execução de pipeline encontrada")
-            return
-        
-        # Calcular métricas
-        metrics = analyzer.calculate_metrics(pipeline_runs)
-        job_metrics = analyzer.analyze_job_performance(pipeline_runs)
-        bottlenecks = analyzer.identify_bottlenecks(pipeline_runs, job_metrics)
-        
-        # Gerar relatórios
-        dashboard.generate_dashboard(
-            pipeline_runs, metrics, job_metrics, bottlenecks
-        )
-        
-        # Salvar métricas em JSON
-        metrics_data = {
-            "summary": {
-                "average_duration_minutes": metrics.average_duration / 60,
-                "success_rate_percent": metrics.success_rate * 100,
-                "runs_per_day": metrics.runs_per_day,
-                "estimated_cost_usd": metrics.estimated_cost,
-                "duration_trend": metrics.duration_trend,
-                "success_rate_trend": metrics.success_rate_trend
-            },
-            "jobs": {
-                name: {
-                    "duration_minutes": job.duration_seconds / 60,
-                    "status": job.status,
-                    "retry_count": job.retry_count
-                }
-                for name, job in job_metrics.items()
-            },
-            "bottlenecks": bottlenecks,
-            "recommendations": [
-                bottleneck["recommendation"] for bottleneck in bottlenecks
-            ]
-        }
-        
-        with open("pipeline-metrics.json", "w") as f:
-            json.dump(metrics_data, f, indent=2)
-        
-        logger.info("Análise concluída com sucesso!")
-        
-        # Imprimir resumo
-        print("\n" + "="*50)
-        print("RESUMO DE MÉTRICAS DO PIPELINE")
-        print("="*50)
-        print(f"Duração Média: {metrics.average_duration/60:.1f} minutos")
-        print(f"Taxa de Sucesso: {metrics.success_rate*100:.1f}%")
-        print(f"Execuções por Dia: {metrics.runs_per_day:.1f}")
-        print(f"Custo Estimado: ${metrics.estimated_cost:.2f}")
-        print(f"Tendência: {metrics.duration_trend}")
-        print("\nPrincipais Recomendações:")
-        for i, bottleneck in enumerate(bottlenecks[:3], 1):
-            print(f"{i}. {bottleneck['recommendation']}")
-        
-    except Exception as e:
-        logger.error(f"Erro durante análise: {e}")
-        raise
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### 3.2. Análise de Resultados e Lições Aprendidas
-
-#### 3.2.1. Impacto Quantitativo das Práticas Implementadas
-
-A implementação do sistema completo de CI/CD com GitHub Actions resulta em melhorias mensuráveis:
-
-**Métricas de Qualidade:**
-- **Redução de bugs em produção:** 70% de redução através de testes automatizados abrangentes
-- **Cobertura de código:** Atingimento consistente de 85%+ de cobertura
-- **Tempo de detecção de problemas:** Redução de semanas para minutos
-
-**Métricas de Velocidade:**
-- **Frequência de deploy:** De mensal para múltiplos por dia
-- **Lead time:** Redução de 2-3 semanas para 2-3 horas
-- **MTTR (Mean Time to Recovery):** Redução de 4-6 horas para 15-30 minutos
-
-**Métricas de Eficiência:**
-- **Automação de tarefas manuais:** 90% das tarefas repetitivas automatizadas
-- **Redução de overhead:** 60% menos tempo gasto em processos manuais
-- **Produtividade da equipe:** 40% de aumento na entrega de features
