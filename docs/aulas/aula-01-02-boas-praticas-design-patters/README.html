@@ -61,6 +61,14 @@
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";
+window.addEventListener("load", () => mermaid.run());
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'docs/aulas/aula-01-02-boas-praticas-design-patters/README';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
@@ -567,15 +575,14 @@ document.write(`
 <p><strong>Teoria Detalhada:</strong> Uma classe deve ter apenas uma razão para mudar, ou seja, deve ter apenas uma responsabilidade ou motivação para ser modificada. O SRP não limita o número de métodos, mas sim o número de <strong>atores</strong> ou <strong>stakeholders</strong> que podem solicitar mudanças na classe.</p>
 <p><strong>Definição Matemática:</strong> Para uma classe <span class="math notranslate nohighlight">\(C\)</span> com conjunto de responsabilidades <span class="math notranslate nohighlight">\(R = \{r_1, r_2, ..., r_n\}\)</span>, o SRP é satisfeito quando <span class="math notranslate nohighlight">\(|R| = 1\)</span>.</p>
 <p><strong>Fluxograma de Identificação de Violação:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
-    A[Analise a Classe] --&gt; B{Consegue descrever sem usar &#39;E&#39; ou &#39;OU&#39;?}
+<pre  class="mermaid">
+        graph TD
+    A[Analise a Classe] --&gt; B{Consegue descrever sem usar 'E' ou 'OU'?}
     B --&gt;|Não| C[❌ Viola SRP]
     B --&gt;|Sim| D{Quantos atores diferentes podem pedir mudanças?}
     D --&gt;|\&gt; 1| C
     D --&gt;|1| E[✅ Satisfaz SRP]
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="open-closed-principle-ocp">
 <h5><strong>Open/Closed Principle (OCP)</strong><a class="headerlink" href="#open-closed-principle-ocp" title="Link to this heading">#</a></h5>
 <p><strong>Teoria Detalhada:</strong> Entidades de software devem estar <strong>abertas para extensão</strong> (novos comportamentos) mas <strong>fechadas para modificação</strong> (código existente não deve ser alterado). Isso é alcançado através de <strong>abstrações</strong>, <strong>polimorfismo</strong> e <strong>injeção de dependência</strong>.</p>
@@ -2914,7 +2921,8 @@ $<span class="math notranslate nohighlight">\(V(G) = E - N + 2P\)</span>$</p>
 </section>
 <section id="mapa-mental-dos-conceitos">
 <h4><strong>Mapa Mental dos Conceitos:</strong><a class="headerlink" href="#mapa-mental-dos-conceitos" title="Link to this heading">#</a></h4>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>mindmap
+<pre  class="mermaid">
+        mindmap
   root((Boas Práticas POO))
     Princípios SOLID
       SRP
@@ -2970,9 +2978,7 @@ $<span class="math notranslate nohighlight">\(V(G) = E - N + 2P\)</span>$</p>
       Automation
         pre-commit
         CI/CD
-</pre></div>
-</div>
-</section>
+    </pre></section>
 </section>
 <section id="referencias-e-leituras-adicionais">
 <h3>5.4. Referências e Leituras Adicionais<a class="headerlink" href="#referencias-e-leituras-adicionais" title="Link to this heading">#</a></h3>
