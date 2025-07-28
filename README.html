@@ -41,7 +41,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/documentation_options.js?v=a8e58a58"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,6 +53,8 @@
     <script src="_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://wavedrom.com/skins/default.js"></script>
+    <script src="https://wavedrom.com/wavedrom.min.js"></script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
@@ -60,6 +62,8 @@
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'README';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Boas Práticas e Design Patterns Clássicos" href="docs/aulas/aula-01-02-boas-praticas-design-patters/README.html" />
@@ -236,7 +240,7 @@
       
       
       
-      <li><a href="_sources/README.md" target="_blank"
+      <li><a href="_sources/" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -361,7 +365,8 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="programacao-orientada-a-objetos-ii-pooii-python">
 <h1>Programação Orientada a Objetos II (POOII) - Python<a class="headerlink" href="#programacao-orientada-a-objetos-ii-pooii-python" title="Link to this heading">#</a></h1>
-<p><a class="reference external" href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3.12-blue.svg" /></a>
+<p><a class="reference external" href="https://github.com/jacksonpradolima/poo-advanced/actions/workflows/deploy-book.yml"><img alt="Deploy Jupyter Book" src="https://github.com/jacksonpradolima/poo-advanced/actions/workflows/deploy-book.yml/badge.svg?branch=main" /></a>
+<a class="reference external" href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3.12-blue.svg" /></a>
 <a class="reference download internal" download="" href="_downloads/9879d6db96fd29134fc802214163b95a/LICENSE"><span class="xref download myst"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></span></a></p>
 <section id="sobre">
 <h2>📚 Sobre<a class="headerlink" href="#sobre" title="Link to this heading">#</a></h2>
@@ -551,6 +556,12 @@ pytest<span class="w"> </span>--cov-report<span class="w"> </span>html
     }
     </script>
     <script>kernelName = 'python3'</script>
+    <script type="text/javascript">
+        function init() {
+            WaveDrom.ProcessAll();
+        }
+        window.onload = init;
+    </script>
 
                 </article>
               
