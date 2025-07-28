@@ -143,7 +143,7 @@ O `HEAD` é outro ponteiro especial que indica em qual branch (e, portanto, em q
 
 ##### Diagrama de um Repositório Git
 
-```mermaid
+```{mermaid}
 graph LR
     subgraph Repositório Git
         direction LR
@@ -299,7 +299,7 @@ Um pipeline CI/CD bem estruturado é composto por estágios sequenciais, cada um
 
 **Estágios Fundamentais:**
 
-```mermaid
+```{mermaid}
 graph LR
     A[Source Code] --> B[Build]
     B --> C[Unit Tests]
@@ -4379,7 +4379,7 @@ class AIPoweredPipeline:
 
 #### 5.3.2. Mapa Mental dos Conceitos
 
-```mermaid
+```{mermaid}
 mindmap
   root((Git & CI/CD))
     Git Fundamentals

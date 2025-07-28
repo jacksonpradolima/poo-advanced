@@ -106,7 +106,7 @@ Quando um ambiente virtual é ativado, as variáveis de ambiente `PATH` e `PYTHO
 **4. Gerenciamento de Estado**
 Scripts de ativação e desativação permitem alternar entre diferentes contextos de execução de forma controlada.
 
-```mermaid
+```{mermaid}
 graph TD
     A[Sistema Operacional] --> B[Python Global]
     A --> C[Ambiente Virtual 1]
@@ -163,7 +163,7 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
 
 **Arquitetura do UV:**
 
-```mermaid
+```{mermaid}
 graph LR
     A[uv] --> B[Resolver]
     A --> C[Installer]
@@ -224,7 +224,7 @@ build-backend = "poetry.core.masonry.api"
 
 **Arquitetura Conceitual do Ruff:**
 
-```mermaid
+```{mermaid}
 graph TD
     A[Código Python] --> B[Ruff Parser]
     B --> C[AST Analyzer]
@@ -272,7 +272,7 @@ Onde:
 
 **Fluxo de Execução do Pre-commit:**
 
-```mermaid
+```{mermaid}
 sequenceDiagram
     participant Dev as Desenvolvedor
     participant Git as Git
@@ -341,7 +341,7 @@ $$\text{Código Python} \xrightarrow{\text{PDoc}} \text{AST} \xrightarrow{\text{
 
 **Arquitetura de Execução do Pytest:**
 
-```mermaid
+```{mermaid}
 graph TD
     A[pytest] --> B[Test Discovery]
     B --> C[Test Collection]
@@ -1757,7 +1757,7 @@ Pesquisas atuais exploram ambientes de desenvolvimento distribuídos:
 
 #### Mapa Mental dos Conceitos
 
-```mermaid
+```{mermaid}
 mindmap
   root((Ambiente Profissional Python))
     Isolamento

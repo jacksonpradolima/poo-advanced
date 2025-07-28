@@ -104,7 +104,7 @@ Os code smells podem ser categorizados em **cinco grandes famílias**, cada uma 
 
 **Diagrama de Detecção:**
 
-```mermaid
+```{mermaid}
 graph TD
     A[Analisar Método/Classe] --> B{Contar Linhas}
     B -->|> 30 linhas| C[Long Method]
@@ -429,7 +429,7 @@ def decidir_refatoracao(complexity_score: int, test_coverage: float,
 
 O **ciclo Red-Green-Refactor** pode ser modelado como uma **máquina de estados finitos**:
 
-```mermaid
+```{mermaid}
 stateDiagram-v2
     [*] --> Red
     Red --> Green : Implementar código mínimo
@@ -602,7 +602,7 @@ max-statements=50
 ```
 
 **Categorias de Análise:**
-```mermaid
+```{mermaid}
 graph LR
     A[Código Python] --> B[Pylint]
     B --> C[Convention C: 8.5/10]
@@ -641,7 +641,7 @@ ignore =
 **Objetivo:** **Quality Gate** automatizado com análise multi-dimensional.
 
 **Arquitetura de Análise:**
-```mermaid
+```{mermaid}
 graph TD
     A[Push para Repository] --> B[GitHub Action]
     B --> C[SonarCloud Scanner]
@@ -753,7 +753,7 @@ ADVANCED_RULES = INTERMEDIATE_RULES + ["minor-code-smells", "duplications"]
 
 ##### **1. Pipeline de Qualidade em Múltiplas Camadas**
 
-```mermaid
+```{mermaid}
 graph TD
     A[Developer Commit] --> B[Pre-commit Hooks]
     B --> C[Fast Quality Checks]
@@ -3372,7 +3372,7 @@ Pesquisas em **Netflix** e **Microsoft** exploram sistemas que **evoluem automat
 
 #### Mapa Mental: Ecossistema de Qualidade
 
-```mermaid
+```{mermaid}
 mindmap
   root((Qualidade de Código))
     Detecção

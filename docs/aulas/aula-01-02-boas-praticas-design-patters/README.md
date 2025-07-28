@@ -109,7 +109,7 @@ Antes de desenvolver a base teórica, analisamos a estrutura do conteúdo progra
 **Definição Matemática:** Para uma classe $C$ com conjunto de responsabilidades $R = \{r_1, r_2, ..., r_n\}$, o SRP é satisfeito quando $|R| = 1$.
 
 **Fluxograma de Identificação de Violação:**
-```mermaid
+```{mermaid}
 graph TD
     A[Analise a Classe] --> B{Consegue descrever sem usar 'E' ou 'OU'?}
     B -->|Não| C[❌ Viola SRP]
@@ -2306,7 +2306,7 @@ def processar_evento(evento):
 
 #### **Mapa Mental dos Conceitos:**
 
-```mermaid
+```{mermaid}
 mindmap
   root((Boas Práticas POO))
     Princípios SOLID
