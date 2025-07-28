@@ -16,11 +16,11 @@ language: "pt-BR"
 tone: "profissional e didático"
 ---
 
-# Aula 3: Git e CI/CD com GitHub Actions
+# Git e CI/CD com GitHub Actions
 
 ## Sumário Completo
 
-- [Aula 3: Git e CI/CD com GitHub Actions](#aula-3-git-e-cicd-com-github-actions)
+- [Git e CI/CD com GitHub Actions](#git-e-cicd-com-github-actions)
   - [Sumário Completo](#sumário-completo)
   - [Seção 1: Abertura e Engajamento](#seção-1-abertura-e-engajamento)
     - [1.1. Problema Motivador: O Caos do Desenvolvimento Sem Versionamento](#11-problema-motivador-o-caos-do-desenvolvimento-sem-versionamento)
