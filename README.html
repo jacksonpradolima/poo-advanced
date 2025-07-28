@@ -1,0 +1,662 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Programação Orientada a Objetos II (POOII) - Python &#8212; Programação Orientada a Objetos II (Avançado)</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'README';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Boas Práticas e Design Patterns Clássicos" href="docs/aulas/aula-01-02-boas-praticas-design-patters/README.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Programação Orientada a Objetos II (Avançado)</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1 current active">
+                <a class="reference internal" href="#">
+                    Programação Orientada a Objetos II (POOII) - Python
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Aulas da Disciplina</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="docs/aulas/aula-01-02-boas-praticas-design-patters/README.html">Boas Práticas e Design Patterns Clássicos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs/aulas/aula-03-04-ambiente-profissional-python/README.html">Ambiente Profissional de Projetos Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs/aulas/aula-05-06-git-ci-cd-github-actions/README.html">Aula 3: Git e CI/CD com GitHub Actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs/aulas/aula-07-08-refatoracao-code-smells-sonarcloud/README.html">Refatoração de Códigos, Code Smells e Integração com SonarCloud</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/README.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Programação Orientada a Objetos II (POOII) - Python</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sobre">📚 Sobre</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#objetivo-geral">🎯Objetivo Geral</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#objetivos-especificos">Objetivos Específicos</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#estrutura-do-curso">🗓️ Estrutura do Curso</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tecnologias-utilizadas">💻 Tecnologias Utilizadas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#como-executar">🚀 Como Executar</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-requisitos">Pré-requisitos</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executando-testes">Executando Testes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conteudos-em-destaque">📖 Conteúdos em Destaque</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trabalhos-futuros">🔮 Trabalhos Futuros</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reuso-do-material">🤝 Reúso do Material</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#licenca">📄 Licença</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="programacao-orientada-a-objetos-ii-pooii-python">
+<h1>Programação Orientada a Objetos II (POOII) - Python<a class="headerlink" href="#programacao-orientada-a-objetos-ii-pooii-python" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3.12-blue.svg" /></a>
+<a class="reference download internal" download="" href="_downloads/9879d6db96fd29134fc802214163b95a/LICENSE"><span class="xref download myst"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></span></a></p>
+<section id="sobre">
+<h2>📚 Sobre<a class="headerlink" href="#sobre" title="Link to this heading">#</a></h2>
+<p>Este repositório contém os materiais, exemplos e recursos utilizados no avançado de <strong>Programação Orientada a Objetos</strong>. O curso foca em práticas avançadas de desenvolvimento de software com orientação a objetos utilizando Python, incluindo integração com bancos de dados, APIs, CI/CD, testes, containerização, interfaces gráficas e RAG.</p>
+<section id="objetivo-geral">
+<h3>🎯Objetivo Geral<a class="headerlink" href="#objetivo-geral" title="Link to this heading">#</a></h3>
+<p>Capacitar o aluno a desenvolver software modular, testável, documentado e pronto para deploy, utilizando práticas modernas de desenvolvimento orientado a objetos com Python, integração com banco de dados, APIs, CI/CD, containers e visualização de dados.</p>
+<section id="objetivos-especificos">
+<h4>Objetivos Específicos<a class="headerlink" href="#objetivos-especificos" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>Revisar princípios fundamentais de POO e boas práticas (Clean Code, SOLID, DRY, YAGNI)</p></li>
+<li><p>Implementar e aplicar Design Patterns clássicos em projetos reais</p></li>
+<li><p>Integrar sistemas via APIs RESTful.</p></li>
+<li><p>Integrar sistemas orientados a objetos com bancos de dados relacionais e analíticos.</p></li>
+<li><p>Criar interfaces gráficas desktop ou web.</p></li>
+<li><p>Aplicar práticas de DevOps: testes automatizados, integração contínua, containerização e deploy.</p></li>
+<li><p>Manipular e visualizar dados utilizando Polars.</p></li>
+<li><p>Explorar tópicos avançados como Retrieval-Augmented Generation (RAG) como diferencial.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="estrutura-do-curso">
+<h2>🗓️ Estrutura do Curso<a class="headerlink" href="#estrutura-do-curso" title="Link to this heading">#</a></h2>
+<p>O curso está organizado conforme o cronograma de 36 aulas:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Aula</strong></p></th>
+<th class="head"><p><strong>Tema</strong></p></th>
+<th class="head"><p><strong>Entregas / Observações</strong></p></th>
+<th class="head"><p><strong>Status</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1-2</p></td>
+<td><p>Boas Práticas e Design Patterns Clássicos</p></td>
+<td><p>_ SOLID, DRY, YAGNI, KISS, Coesão x Acoplamento _ Patterns clássicos (Strategy, Factory, Singleton, etc.)</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-odd"><td><p>3-4</p></td>
+<td><p>Ambiente profissional de projetos Python</p></td>
+<td><p>_ Projeto inicial no GitHub (empty template) _ uv ou poetry para ambientes isolados _ Configuração de projeto com pyproject.toml _ Documentação com pdoc * Testes com pytest, cobertura com pytest-cov e benchmark com pytest-benchmark</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-even"><td><p>5-6</p></td>
+<td><p>Git e CI/CD com GitHub Actions</p></td>
+<td><p>_ Git e commits semânticos (conventional commits) _ Introdução Workflow com: _ Linting (pre-commit) _ pre-commit com mypy e ruff _ Testes (pytest) _ Coverage + Build do pacote</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-odd"><td><p>7-8</p></td>
+<td><p>Refatoração de Códigos</p></td>
+<td><p>_ Code smells e refatoração incremental _ Refatoração de Software (tipos e atores) _ Sonarcloud (CI) _ Refatoração baseada em TDD</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-even"><td><p>9-14</p></td>
+<td><p>Construção e Consumo de APIs REST</p></td>
+<td><p>_ Definição _ Criação de APIs com FastAPI (simples) _ Criação de rotas, validação com pydantic _ Retorno estruturado, tratamento de erros _ Consumo com httpx, asyncio, backoff, e testes com responses _ Consumo de APIs externas com caching local _ Uso do Postman _ Geração de OpenAPI</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-odd"><td><p>15-20</p></td>
+<td><p>Integração com Banco de Dados</p></td>
+<td><p>_ PostgreSQL e DuckDB _ ORM básico com dataclasses + SQL _ Pyarrow _ Uso de testcontainers</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-even"><td><p>21-22</p></td>
+<td><p>Manipulação de Dados com Polars</p></td>
+<td><p>_ Leitura, transformação, agregações _ Integração entre objetos e DataFrames _ Dashboards com plotly _ ETL básico</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-odd"><td><p>23-27</p></td>
+<td><p>Interface de Usuário (GUI/Web)</p></td>
+<td><p>_ Construção de GUI com Tkinter ou PySide6 _ Alternativa: mini dashboard com Streamlit * Conectar GUI com API Rest e DuckDB</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-even"><td><p>28-32</p></td>
+<td><p>Containerização, Orquestração e CI/CD completo com build e push de imagem</p></td>
+<td><p>_ Docker e uvicorn para deploy local _ Docker Compose com persistência e testes _ Volume persistente + testes em Docker _ GitHub Actions com Docker (deploy) * Deploy em Netlify e Render</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-odd"><td><p>33-34</p></td>
+<td><p>Tópicos Avançados: RAG (Retrieval-Augmented Generation)</p></td>
+<td><p>_ Exemplos com OpenAI/LLM simulados ou locais (ollama) _ Fundamentos de RAG (Retrieval-Augmented Generation)</p></td>
+<td><p>🔄 Em desenvolvimento</p></td>
+</tr>
+<tr class="row-even"><td><p>35-36</p></td>
+<td><p>Apresentações finais</p></td>
+<td><p>Slides, live demo, justificativas</p></td>
+<td><p>-</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="tecnologias-utilizadas">
+<h2>💻 Tecnologias Utilizadas<a class="headerlink" href="#tecnologias-utilizadas" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Python 3.12+</strong></p></li>
+<li><p><strong>FastAPI</strong></p></li>
+<li><p><strong>PostgreSQL 15+</strong></p></li>
+<li><p><strong>DuckDB</strong></p></li>
+<li><p><strong>Polars</strong></p></li>
+<li><p><strong>Tkinter, PySide6, Streamlit</strong></p></li>
+<li><p><strong>Docker, Docker Compose</strong></p></li>
+<li><p><strong>GitHub Actions</strong></p></li>
+<li><p><strong>pytest, pytest-cov</strong></p></li>
+<li><p><strong>pdoc</strong></p></li>
+<li><p><strong>SonarCloud</strong></p></li>
+</ul>
+</section>
+<section id="como-executar">
+<h2>🚀 Como Executar<a class="headerlink" href="#como-executar" title="Link to this heading">#</a></h2>
+<section id="pre-requisitos">
+<h3>Pré-requisitos<a class="headerlink" href="#pre-requisitos" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Python 3.12+</p></li>
+<li><p>Poetry ou uv</p></li>
+<li><p>Docker</p></li>
+</ul>
+</section>
+<section id="executando-testes">
+<h3>Executando Testes<a class="headerlink" href="#executando-testes" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Instalar dependências</span>
+poetry<span class="w"> </span>install
+
+<span class="c1"># Executar testes</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>./
+
+<span class="c1"># Visualizar cobertura</span>
+pytest<span class="w"> </span>--cov-report<span class="w"> </span>html
+</pre></div>
+</div>
+</section>
+</section>
+<section id="conteudos-em-destaque">
+<h2>📖 Conteúdos em Destaque<a class="headerlink" href="#conteudos-em-destaque" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Princípios SOLID, DRY, YAGNI</strong></p></li>
+<li><p><strong>Refatoração com SonarCloud</strong></p></li>
+<li><p><strong>APIs REST com FastAPI</strong></p></li>
+<li><p><strong>Integração com PostgreSQL e DuckDB</strong></p></li>
+<li><p><strong>ETL e manipulação de dados com Polars</strong></p></li>
+<li><p><strong>Interfaces gráficas GUI e web</strong></p></li>
+<li><p><strong>Pipeline CI/CD completo com GitHub Actions</strong></p></li>
+<li><p><strong>Containerização com Docker</strong></p></li>
+<li><p><strong>Deploys em Netlify, Render</strong></p></li>
+<li><p><strong>Retrieval-Augmented Generation (RAG) com LLMs</strong></p></li>
+<li><p><strong>Testes unitários, integração e performance</strong></p></li>
+</ul>
+</section>
+<section id="trabalhos-futuros">
+<h2>🔮 Trabalhos Futuros<a class="headerlink" href="#trabalhos-futuros" title="Link to this heading">#</a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Finalizar todos os exemplos práticos por aula</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Documentar todas as aulas via pdoc</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Implementar projetos integradores completos</p></li>
+</ul>
+</section>
+<section id="reuso-do-material">
+<h2>🤝 Reúso do Material<a class="headerlink" href="#reuso-do-material" title="Link to this heading">#</a></h2>
+<p>O conteúdo deste repositório pode ser reutilizado com devida referência ao repositório. Pull Requests com melhorias e novos exemplos são bem-vindos!</p>
+<p>Para dúvidas, comentários ou sugestões, abra uma <strong>issue</strong>.</p>
+</section>
+<section id="licenca">
+<h2>📄 Licença<a class="headerlink" href="#licenca" title="Link to this heading">#</a></h2>
+<p>Este projeto está licenciado sob a <a class="reference download internal" download="" href="_downloads/9879d6db96fd29134fc802214163b95a/LICENSE"><span class="xref download myst">MIT License</span></a>.</p>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="docs/aulas/aula-01-02-boas-praticas-design-patters/README.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Boas Práticas e Design Patterns Clássicos</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sobre">📚 Sobre</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#objetivo-geral">🎯Objetivo Geral</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#objetivos-especificos">Objetivos Específicos</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#estrutura-do-curso">🗓️ Estrutura do Curso</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tecnologias-utilizadas">💻 Tecnologias Utilizadas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#como-executar">🚀 Como Executar</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-requisitos">Pré-requisitos</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executando-testes">Executando Testes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conteudos-em-destaque">📖 Conteúdos em Destaque</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trabalhos-futuros">🔮 Trabalhos Futuros</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reuso-do-material">🤝 Reúso do Material</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#licenca">📄 Licença</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jackson Antonio do Prado Lima
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
