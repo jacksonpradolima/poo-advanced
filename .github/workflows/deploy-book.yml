@@ -17,12 +17,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12' # Você pode usar a versão do Python que preferir.
+          python-version: '3.12'
 
       - name: Cache dependencies
         uses: actions/cache@v4
