@@ -1,0 +1,15 @@
+title: Programação Orientada a Objetos II (Avançado)
+author: Jackson Antonio do Prado Lima
+copyright: "2025"
+
+# Configurações do repositório para adicionar links "Edit this page", etc.
+repository:
+  url: https://github.com/jacksonpradolima/poo-advanced
+  path_to_book: / 
+  branch: main 
+
+sphinx:
+  extra_extensions:
+    - sphinxcontrib.mermaid
+
+only_build_toc_files        : true

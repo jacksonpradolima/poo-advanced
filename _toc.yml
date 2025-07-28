@@ -1,0 +1,20 @@
+format: jb-book
+root: README
+parts:
+  - caption: Aulas da Disciplina
+    chapters:
+      - file: docs/aulas/aula-01-02-boas-praticas-design-patters/README.md
+      - file: docs/aulas/aula-03-04-ambiente-profissional-python/README.md
+      - file: docs/aulas/aula-05-06-git-ci-cd-github-actions/README.md
+      - file: docs/aulas/aula-07-08-refatoracao-code-smells-sonarcloud/README.md
+
+  # - caption: Exercícios
+  #   chapters:
+  #     - file: docs/aulas/aula-01-02-introducao-teste-software-qualidade/exercicios/README.md
+  #     - file: docs/aulas/aula-03-04-conceitos-fundamentais-teste/exercicios/README.md
+  
+  # - caption: Soluções dos Exercícios
+  #   chapters:
+  #     - file: docs/aulas/aula-01-02-introducao-teste-software-qualidade/solucoes/README.md
+  #     - file: docs/aulas/aula-03-04-conceitos-fundamentais-teste/solucoes/README.md
+      
