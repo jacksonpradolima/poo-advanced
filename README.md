@@ -1,5 +1,6 @@
 # Programação Orientada a Objetos II (POOII) - Python
 
+[![Deploy Jupyter Book](https://github.com/jacksonpradolima/poo-advanced/actions/workflows/deploy-book.yml/badge.svg?branch=main)](https://github.com/jacksonpradolima/poo-advanced/actions/workflows/deploy-book.yml)
 [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
