@@ -61,6 +61,14 @@
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";
+window.addEventListener("load", () => mermaid.run());
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'docs/aulas/aula-07-08-refatoracao-code-smells-sonarcloud/README';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
@@ -572,7 +580,8 @@ document.write(`
 <li><p><strong>Long Parameter List (Lista Longa de Parâmetros):</strong> Métodos com 4+ parâmetros</p></li>
 </ul>
 <p><strong>Diagrama de Detecção:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[Analisar Método/Classe] --&gt; B{Contar Linhas}
     B --&gt;|&gt; 30 linhas| C[Long Method]
     B --&gt;|≤ 30 linhas| D{Contar Parâmetros}
@@ -580,9 +589,7 @@ document.write(`
     D --&gt;|≤ 4 parâmetros| F{Complexidade Ciclomática}
     F --&gt;|&gt; 10| G[Complex Method]
     F --&gt;|≤ 10| H[Código Aceitável]
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="smells-de-duplicacao">
 <h5><strong>2. Smells de Duplicação</strong><a class="headerlink" href="#smells-de-duplicacao" title="Link to this heading">#</a></h5>
 <p><strong>Conceito:</strong> Violações do <strong>Princípio DRY</strong> (Don’t Repeat Yourself).</p>
@@ -947,15 +954,14 @@ A: Não necessariamente. Em protótipos ou código descartável, pode ser aceit�
 <h4>Terminologia Essencial e Definições Formais<a class="headerlink" href="#id2" title="Link to this heading">#</a></h4>
 <p><strong>Test-Driven Development (TDD)</strong> é uma metodologia de desenvolvimento onde os testes são escritos antes do código de produção, seguindo o ciclo <strong>Red-Green-Refactor</strong>. Formalmente, TDD estabelece uma <strong>sequência determinística</strong> de estados: <span class="math notranslate nohighlight">\(Failing\ Test \rightarrow Passing\ Code \rightarrow Refactored\ Code \rightarrow Failing\ Test\)</span>.</p>
 <p>O <strong>ciclo Red-Green-Refactor</strong> pode ser modelado como uma <strong>máquina de estados finitos</strong>:</p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>stateDiagram-v2
+<pre  class="mermaid">
+        stateDiagram-v2
     [*] --&gt; Red
     Red --&gt; Green : Implementar código mínimo
     Green --&gt; Refactor : Código funcional
     Refactor --&gt; Red : Novo teste
     Refactor --&gt; [*] : Feature completa
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="estrutura-conceitual-do-tdd-na-refatoracao">
 <h4>Estrutura Conceitual do TDD na Refatoração<a class="headerlink" href="#estrutura-conceitual-do-tdd-na-refatoracao" title="Link to this heading">#</a></h4>
 <section id="fase-red-definicao-de-comportamento">
@@ -1136,16 +1142,15 @@ $<span class="math notranslate nohighlight">\(Cycle\ Time = T_{red} + T_{green} 
 </pre></div>
 </div>
 <p><strong>Categorias de Análise:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph LR
+<pre  class="mermaid">
+        graph LR
     A[Código Python] --&gt; B[Pylint]
     B --&gt; C[Convention C: 8.5/10]
     B --&gt; D[Refactor R: 7.2/10]
     B --&gt; E[Warning W: 9.1/10]
     B --&gt; F[Error E: 10/10]
     B --&gt; G[Fatal F: 10/10]
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="flake8-analise-de-estilo-e-qualidade">
 <h5><strong>2. Flake8: Análise de Estilo e Qualidade</strong><a class="headerlink" href="#flake8-analise-de-estilo-e-qualidade" title="Link to this heading">#</a></h5>
 <p><strong>Objetivo:</strong> Verificação de <strong>PEP 8</strong>, <strong>complexidade ciclomática</strong> e <strong>erros de sintaxe</strong>.</p>
@@ -1174,7 +1179,8 @@ $<span class="math notranslate nohighlight">\(Cycle\ Time = T_{red} + T_{green} 
 <h5><strong>3. SonarCloud: Plataforma Integrada</strong><a class="headerlink" href="#sonarcloud-plataforma-integrada" title="Link to this heading">#</a></h5>
 <p><strong>Objetivo:</strong> <strong>Quality Gate</strong> automatizado com análise multi-dimensional.</p>
 <p><strong>Arquitetura de Análise:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[Push para Repository] --&gt; B[GitHub Action]
     B --&gt; C[SonarCloud Scanner]
     C --&gt; D[Análise de Qualidade]
@@ -1186,9 +1192,7 @@ $<span class="math notranslate nohighlight">\(Cycle\ Time = T_{red} + T_{green} 
     H --&gt; J[Duplicação]
     H --&gt; K[Bugs/Vulnerabilidades]
     H --&gt; L[Code Smells]
-</pre></div>
-</div>
-<p><strong>Métricas Principais do SonarCloud:</strong></p>
+    </pre><p><strong>Métricas Principais do SonarCloud:</strong></p>
 <ol class="arabic simple">
 <li><p><strong>Bugs:</strong> Problemas que podem causar comportamento incorreto</p></li>
 <li><p><strong>Vulnerabilidades:</strong> Problemas de segurança</p></li>
@@ -1313,7 +1317,8 @@ $<span class="math notranslate nohighlight">\(MI = 171 - 5.2 \times \ln(V) - 0.2
 <h4>Estrutura Conceitual da Integração<a class="headerlink" href="#estrutura-conceitual-da-integracao" title="Link to this heading">#</a></h4>
 <section id="pipeline-de-qualidade-em-multiplas-camadas">
 <h5><strong>1. Pipeline de Qualidade em Múltiplas Camadas</strong><a class="headerlink" href="#pipeline-de-qualidade-em-multiplas-camadas" title="Link to this heading">#</a></h5>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[Developer Commit] --&gt; B[Pre-commit Hooks]
     B --&gt; C[Fast Quality Checks]
     C --&gt; D[Unit Tests]
@@ -1335,9 +1340,7 @@ $<span class="math notranslate nohighlight">\(MI = 171 - 5.2 \times \ln(V) - 0.2
         F
         G
     end
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="configuracao-github-actions-completa">
 <h5><strong>2. Configuração GitHub Actions Completa</strong><a class="headerlink" href="#configuracao-github-actions-completa" title="Link to this heading">#</a></h5>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/quality-gate.yml</span>
@@ -3952,7 +3955,8 @@ $<span class="math notranslate nohighlight">\(MI = 171 - 5.2 \times \ln(V) - 0.2
 </section>
 <section id="mapa-mental-ecossistema-de-qualidade">
 <h4>Mapa Mental: Ecossistema de Qualidade<a class="headerlink" href="#mapa-mental-ecossistema-de-qualidade" title="Link to this heading">#</a></h4>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>mindmap
+<pre  class="mermaid">
+        mindmap
   root((Qualidade de Código))
     Detecção
       Code Smells
@@ -4000,9 +4004,7 @@ $<span class="math notranslate nohighlight">\(MI = 171 - 5.2 \times \ln(V) - 0.2
         Redução de Bugs
         Satisfação Equipe
         Time to Market
-</pre></div>
-</div>
-</section>
+    </pre></section>
 </section>
 <section id="referencias-e-leituras-adicionais">
 <h3>5.4. Referências e Leituras Adicionais<a class="headerlink" href="#referencias-e-leituras-adicionais" title="Link to this heading">#</a></h3>

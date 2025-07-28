@@ -59,6 +59,14 @@
     <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";
+window.addEventListener("load", () => mermaid.run());
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'docs/aulas/aula-05-06-git-ci-cd-github-actions/README';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
@@ -647,7 +655,8 @@ document.write(`
 <p>O <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> é outro ponteiro especial que indica em qual branch (e, portanto, em qual commit) você está trabalhando atualmente.</p>
 <section id="diagrama-de-um-repositorio-git">
 <h5>Diagrama de um Repositório Git<a class="headerlink" href="#diagrama-de-um-repositorio-git" title="Link to this heading">#</a></h5>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph LR
+<pre  class="mermaid">
+        graph LR
     subgraph Repositório Git
         direction LR
         A[C1] --&gt; B(C2)
@@ -669,9 +678,7 @@ document.write(`
     style C fill:#ccf,stroke:#333,stroke-width:2px
     style D fill:#cfc,stroke:#333,stroke-width:2px
     style E fill:#f99,stroke:#333,stroke-width:2px
-</pre></div>
-</div>
-<p><strong>Interpretação do Diagrama:</strong></p>
+    </pre><p><strong>Interpretação do Diagrama:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">C1</span></code> e <code class="docutils literal notranslate"><span class="pre">C2</span></code> são commits na linha principal.</p></li>
 <li><p>Em <code class="docutils literal notranslate"><span class="pre">C2</span></code>, um novo branch <code class="docutils literal notranslate"><span class="pre">feature</span></code> foi criado.</p></li>
@@ -862,7 +869,8 @@ document.write(`
 <h4>2.3.2. Estrutura Conceitual: Anatomia de um Pipeline CI/CD<a class="headerlink" href="#estrutura-conceitual-anatomia-de-um-pipeline-ci-cd" title="Link to this heading">#</a></h4>
 <p>Um pipeline CI/CD bem estruturado é composto por estágios sequenciais, cada um com responsabilidades específicas e critérios de sucesso bem definidos.</p>
 <p><strong>Estágios Fundamentais:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph LR
+<pre  class="mermaid">
+        graph LR
     A[Source Code] --&gt; B[Build]
     B --&gt; C[Unit Tests]
     C --&gt; D[Integration Tests]
@@ -881,9 +889,7 @@ document.write(`
     style G fill:#e3f2fd
     style H fill:#e8f5e8
     style I fill:#e8f5e8
-</pre></div>
-</div>
-<p><strong>1. Estágio de Source Control:</strong></p>
+    </pre><p><strong>1. Estágio de Source Control:</strong></p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Trigger do pipeline baseado em eventos do Git</span>
 <span class="nt">on</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">push</span><span class="p">:</span>
@@ -5001,7 +5007,8 @@ release/v2.1.0<span class="w">         </span><span class="c1"># Preparação de
 </section>
 <section id="mapa-mental-dos-conceitos">
 <h4>5.3.2. Mapa Mental dos Conceitos<a class="headerlink" href="#mapa-mental-dos-conceitos" title="Link to this heading">#</a></h4>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>mindmap
+<pre  class="mermaid">
+        mindmap
   root((Git &amp; CI/CD))
     Git Fundamentals
       Distributed VCS
@@ -5054,9 +5061,7 @@ release/v2.1.0<span class="w">         </span><span class="c1"># Preparação de
       GitOps
       Edge Computing
       Quantum-Safe Security
-</pre></div>
-</div>
-</section>
+    </pre></section>
 </section>
 <section id="referencias-e-leituras-adicionais">
 <h3>5.4. Referências e Leituras Adicionais<a class="headerlink" href="#referencias-e-leituras-adicionais" title="Link to this heading">#</a></h3>

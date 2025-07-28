@@ -61,6 +61,14 @@
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";
+window.addEventListener("load", () => mermaid.run());
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'docs/aulas/aula-03-04-ambiente-profissional-python/README';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
@@ -541,7 +549,8 @@ Cada ambiente possui seu próprio diretório <code class="docutils literal notra
 Quando um ambiente virtual é ativado, as variáveis de ambiente <code class="docutils literal notranslate"><span class="pre">PATH</span></code> e <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> são modificadas para priorizar o interpretador e packages do ambiente ativo.</p>
 <p><strong>4. Gerenciamento de Estado</strong>
 Scripts de ativação e desativação permitem alternar entre diferentes contextos de execução de forma controlada.</p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[Sistema Operacional] --&gt; B[Python Global]
     A --&gt; C[Ambiente Virtual 1]
     A --&gt; D[Ambiente Virtual 2]
@@ -555,9 +564,7 @@ Scripts de ativação e desativação permitem alternar entre diferentes context
     C --&gt; J[Python 3.12]
     D --&gt; K[Python 3.11]
     E --&gt; L[Python 3.12]
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="analise-de-consequencias-e-trade-offs">
 <h4>Análise de Consequências e Trade-offs<a class="headerlink" href="#analise-de-consequencias-e-trade-offs" title="Link to this heading">#</a></h4>
 <p><strong>Vantagens dos Ambientes Virtuais:</strong></p>
@@ -599,7 +606,8 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
 <li><p><strong>Compatibilidade</strong>: Funciona com requirements.txt, pyproject.toml e pip</p></li>
 </ul>
 <p><strong>Arquitetura do UV:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph LR
+<pre  class="mermaid">
+        graph LR
     A[uv] --&gt; B[Resolver]
     A --&gt; C[Installer]
     A --&gt; D[Cache Manager]
@@ -609,9 +617,7 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
     C --&gt; G[Virtual Environment]
     D --&gt; H[Global Cache]
     E --&gt; I[uv.lock]
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="poetry-gerenciamento-declarativo-de-dependencias">
 <h4>Poetry: Gerenciamento Declarativo de Dependências<a class="headerlink" href="#poetry-gerenciamento-declarativo-de-dependencias" title="Link to this heading">#</a></h4>
 <p><strong>Poetry</strong> adota uma abordagem declarativa para gerenciamento de projetos Python, inspirada em ferramentas como Cargo (Rust) e NPM (Node.js).</p>
@@ -687,7 +693,8 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
 <h4>Ruff: Linting e Formatação Unificados<a class="headerlink" href="#ruff-linting-e-formatacao-unificados" title="Link to this heading">#</a></h4>
 <p><strong>Ruff</strong> representa uma revolução no ecossistema de qualidade de código Python, consolidando funcionalidades de múltiplas ferramentas (Flake8, isort, Black, etc.) em uma única implementação ultra-rápida em Rust.</p>
 <p><strong>Arquitetura Conceitual do Ruff:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[Código Python] --&gt; B[Ruff Parser]
     B --&gt; C[AST Analyzer]
     C --&gt; D[Rule Engine]
@@ -695,9 +702,7 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
     D --&gt; F[Linter]
     E --&gt; G[Código Formatado]
     F --&gt; H[Relatório de Issues]
-</pre></div>
-</div>
-<p><strong>Categorias de Regras do Ruff:</strong></p>
+    </pre><p><strong>Categorias de Regras do Ruff:</strong></p>
 <ul class="simple">
 <li><p><strong>E</strong>: Erros de estilo (PEP 8)</p></li>
 <li><p><strong>W</strong>: Warnings de estilo</p></li>
@@ -736,7 +741,8 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
 <h4>Arquitetura dos Git Hooks<a class="headerlink" href="#arquitetura-dos-git-hooks" title="Link to this heading">#</a></h4>
 <p><strong>Git Hooks</strong> são scripts executados automaticamente em momentos específicos do workflow Git. O <strong>pre-commit</strong> é executado antes de cada commit, permitindo validação automatizada de qualidade.</p>
 <p><strong>Fluxo de Execução do Pre-commit:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>sequenceDiagram
+<pre  class="mermaid">
+        sequenceDiagram
     participant Dev as Desenvolvedor
     participant Git as Git
     participant PC as Pre-commit
@@ -758,9 +764,7 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
         PC--&gt;&gt;Git: Falha
         Git--&gt;&gt;Dev: Commit rejeitado
     end
-</pre></div>
-</div>
-</section>
+    </pre></section>
 <section id="configuracao-do-pre-commit">
 <h4>Configuração do Pre-commit<a class="headerlink" href="#configuracao-do-pre-commit" title="Link to this heading">#</a></h4>
 <p><strong>Arquivo .pre-commit-config.yaml:</strong></p>
@@ -802,7 +806,8 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
 <h4>Pytest: Framework de Testes Moderno<a class="headerlink" href="#pytest-framework-de-testes-moderno" title="Link to this heading">#</a></h4>
 <p><strong>Pytest</strong> representa o estado da arte em frameworks de teste Python, oferecendo sintaxe simples, fixtures poderosas e extensibilidade através de plugins.</p>
 <p><strong>Arquitetura de Execução do Pytest:</strong></p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<pre  class="mermaid">
+        graph TD
     A[pytest] --&gt; B[Test Discovery]
     B --&gt; C[Test Collection]
     C --&gt; D[Fixture Setup]
@@ -814,9 +819,7 @@ Ambientes criados sem especificação precisa de versões podem resultar em inst
     E --&gt; I[pytest-benchmark]
     H --&gt; J[Coverage Report]
     I --&gt; K[Performance Report]
-</pre></div>
-</div>
-<p><strong>Pytest-cov: Medição de Cobertura</strong></p>
+    </pre><p><strong>Pytest-cov: Medição de Cobertura</strong></p>
 <p>A cobertura de código <span class="math notranslate nohighlight">\(C\)</span> é definida como:</p>
 <div class="math notranslate nohighlight">
 \[C = \frac{\text{Linhas Executadas}}{\text{Total de Linhas Executáveis}} \times 100\%\]</div>
@@ -2243,7 +2246,8 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 </section>
 <section id="mapa-mental-dos-conceitos">
 <h4>Mapa Mental dos Conceitos<a class="headerlink" href="#mapa-mental-dos-conceitos" title="Link to this heading">#</a></h4>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>mindmap
+<pre  class="mermaid">
+        mindmap
   root((Ambiente Profissional Python))
     Isolamento
       Ambientes Virtuais
@@ -2302,9 +2306,7 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
         Performance
         Regressões
         Comparações
-</pre></div>
-</div>
-</section>
+    </pre></section>
 </section>
 <section id="referencias-e-leituras-adicionais">
 <h3>5.4. Referências e Leituras Adicionais<a class="headerlink" href="#referencias-e-leituras-adicionais" title="Link to this heading">#</a></h3>
