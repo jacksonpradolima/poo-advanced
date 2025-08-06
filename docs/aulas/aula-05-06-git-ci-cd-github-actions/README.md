@@ -154,7 +154,7 @@ graph LR
         D --> E
     end
 
-    subgraph Ponteiros (Branches)
+    subgraph Branches
         direction LR
         main --> C
         feature --> D
