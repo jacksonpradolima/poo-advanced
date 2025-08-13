@@ -85,9 +85,9 @@ Esta aula não apenas ensina **técnicas de refatoração**, mas demonstra como 
 
 **Code Smell** é um termo técnico que descreve fragmentos de código que, embora funcionalmente corretos, violam princípios de design ou boas práticas de programação, indicando potenciais problemas na arquitetura do software. Formalmente, um code smell é um **indicador sintático ou estrutural** que sugere a necessidade de refatoração para melhorar a manutenibilidade, legibilidade ou extensibilidade do código.
 
-> **🔍 Analogia para Entender**
-> 
-> Imagine code smells como sintomas médicos. Um paciente pode estar funcionando normalmente (o código executa), mas apresentar sintomas como fadiga crônica, dores de cabeça ou pressão alta (code smells). Estes sintomas não impedem o funcionamento imediato, mas indicam problemas subjacentes que, se não tratados, podem evoluir para condições mais sérias. Um médico experiente reconhece esses padrões e recomenda tratamentos preventivos (refatoração) antes que se tornem problemas críticos (bugs, falhas de sistema, impossibilidade de manutenção).
+```{hint}
+Analogia: Imagine code smells como sintomas médicos. Um paciente pode estar funcionando normalmente (o código executa), mas apresentar sintomas como fadiga crônica, dores de cabeça ou pressão alta (code smells). Estes sintomas não impedem o funcionamento imediato, mas indicam problemas subjacentes que, se não tratados, podem evoluir para condições mais sérias. Um médico experiente reconhece esses padrões e recomenda tratamentos preventivos (refatoração) antes que se tornem problemas críticos (bugs, falhas de sistema, impossibilidade de manutenção).
+```
 
 #### Estrutura Conceitual dos Code Smells
 
@@ -107,11 +107,11 @@ Os code smells podem ser categorizados em **cinco grandes famílias**, cada uma 
 ```{mermaid}
 graph TD
     A[Analisar Método/Classe] --> B{Contar Linhas}
-    B -->|> 30 linhas| C[Long Method]
+    B -->|\> 30 linhas| C[Long Method]
     B -->|≤ 30 linhas| D{Contar Parâmetros}
-    D -->|> 4 parâmetros| E[Long Parameter List]
+    D -->|\> 4 parâmetros| E[Long Parameter List]
     D -->|≤ 4 parâmetros| F{Complexidade Ciclomática}
-    F -->|> 10| G[Complex Method]
+    F -->|\> 10| G[Complex Method]
     F -->|≤ 10| H[Código Aceitável]
 ```
 

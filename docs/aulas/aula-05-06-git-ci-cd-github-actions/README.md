@@ -289,9 +289,9 @@ CI/CD representa uma das mais significativas evoluções nas práticas de desenv
 
 * **Artefato:** O resultado tangível de um processo de build - pode ser um arquivo executável, uma imagem Docker, um pacote ZIP, ou qualquer outro formato deployável.
 
-> **Analogia para Entender:**
->
-> Imagine o CI/CD como uma **linha de produção industrial moderna**. O *código-fonte* é a **matéria-prima**, a *integração contínua* é a **linha de montagem** que verifica constantemente a qualidade durante a produção, a *entrega contínua* é o **controle de qualidade final** que garante que o produto está pronto para venda, e o *deployment contínuo* é o **sistema de distribuição automática** que leva o produto diretamente às prateleiras das lojas assim que sai da linha de produção.
+```{hint}
+**Analogia:** Imagine o CI/CD como uma **linha de produção industrial moderna**. O *código-fonte* é a **matéria-prima**, a *integração contínua* é a **linha de montagem** que verifica constantemente a qualidade durante a produção, a *entrega contínua* é o **controle de qualidade final** que garante que o produto está pronto para venda, e o *deployment contínuo* é o **sistema de distribuição automática** que leva o produto diretamente às prateleiras das lojas assim que sai da linha de produção.
+```
 
 #### 2.3.2. Estrutura Conceitual: Anatomia de um Pipeline CI/CD
 
@@ -817,9 +817,9 @@ O GitHub Actions é uma plataforma de automação e CI/CD integrada diretamente 
 
 * **Runner:** O ambiente de execução onde os jobs são processados. GitHub oferece runners hospedados (Ubuntu, Windows, macOS) ou permite o uso de runners auto-hospedados.
 
-> **Analogia para Entender:** 
-> 
-> Imagine o GitHub Actions como uma **fábrica de produção automatizada**. O *workflow* é a **linha de produção completa**, os *jobs* são **estações de trabalho** que podem operar simultaneamente, os *steps* são **operações específicas** em cada estação, e as *actions* são **ferramentas especializadas** que cada operador pode usar. Os *events* são os **sinais** que iniciam a produção (como a chegada de matéria-prima), e os *runners* são os **operários** que executam o trabalho.
+```{hint}
+**Analogia:** Imagine o GitHub Actions como uma **fábrica de produção automatizada**. O *workflow* é a **linha de produção completa**, os *jobs* são **estações de trabalho** que podem operar simultaneamente, os *steps* são **operações específicas** em cada estação, e as *actions* são **ferramentas especializadas** que cada operador pode usar. Os *events* são os **sinais** que iniciam a produção (como a chegada de matéria-prima), e os *runners* são os **operários** que executam o trabalho.
+```
 
 #### 2.4.2. Estrutura Conceitual: Anatomia de um Workflow
 
