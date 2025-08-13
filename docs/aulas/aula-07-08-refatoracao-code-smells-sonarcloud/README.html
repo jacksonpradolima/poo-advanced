@@ -564,10 +564,10 @@ document.write(`
 <section id="terminologia-essencial-e-definicoes-formais">
 <h4>Terminologia Essencial e Definições Formais<a class="headerlink" href="#terminologia-essencial-e-definicoes-formais" title="Link to this heading">#</a></h4>
 <p><strong>Code Smell</strong> é um termo técnico que descreve fragmentos de código que, embora funcionalmente corretos, violam princípios de design ou boas práticas de programação, indicando potenciais problemas na arquitetura do software. Formalmente, um code smell é um <strong>indicador sintático ou estrutural</strong> que sugere a necessidade de refatoração para melhorar a manutenibilidade, legibilidade ou extensibilidade do código.</p>
-<blockquote>
-<div><p><strong>🔍 Analogia para Entender</strong></p>
-<p>Imagine code smells como sintomas médicos. Um paciente pode estar funcionando normalmente (o código executa), mas apresentar sintomas como fadiga crônica, dores de cabeça ou pressão alta (code smells). Estes sintomas não impedem o funcionamento imediato, mas indicam problemas subjacentes que, se não tratados, podem evoluir para condições mais sérias. Um médico experiente reconhece esses padrões e recomenda tratamentos preventivos (refatoração) antes que se tornem problemas críticos (bugs, falhas de sistema, impossibilidade de manutenção).</p>
-</div></blockquote>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Analogia: Imagine code smells como sintomas médicos. Um paciente pode estar funcionando normalmente (o código executa), mas apresentar sintomas como fadiga crônica, dores de cabeça ou pressão alta (code smells). Estes sintomas não impedem o funcionamento imediato, mas indicam problemas subjacentes que, se não tratados, podem evoluir para condições mais sérias. Um médico experiente reconhece esses padrões e recomenda tratamentos preventivos (refatoração) antes que se tornem problemas críticos (bugs, falhas de sistema, impossibilidade de manutenção).</p>
+</div>
 </section>
 <section id="estrutura-conceitual-dos-code-smells">
 <h4>Estrutura Conceitual dos Code Smells<a class="headerlink" href="#estrutura-conceitual-dos-code-smells" title="Link to this heading">#</a></h4>
@@ -585,11 +585,11 @@ document.write(`
 <pre  class="mermaid">
         graph TD
     A[Analisar Método/Classe] --&gt; B{Contar Linhas}
-    B --&gt;|&gt; 30 linhas| C[Long Method]
+    B --&gt;|\&gt; 30 linhas| C[Long Method]
     B --&gt;|≤ 30 linhas| D{Contar Parâmetros}
-    D --&gt;|&gt; 4 parâmetros| E[Long Parameter List]
+    D --&gt;|\&gt; 4 parâmetros| E[Long Parameter List]
     D --&gt;|≤ 4 parâmetros| F{Complexidade Ciclomática}
-    F --&gt;|&gt; 10| G[Complex Method]
+    F --&gt;|\&gt; 10| G[Complex Method]
     F --&gt;|≤ 10| H[Código Aceitável]
     </pre></section>
 <section id="smells-de-duplicacao">
